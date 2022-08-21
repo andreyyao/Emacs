@@ -1,0 +1,29 @@
+# -*- mode: snippet -*-
+# name: homework
+# key: 
+# --
+
+\documentclass[12pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath,amsthm,amssymb,latexsym}
+\usepackage{tikz,float,dsfont,multirow,bbm}
+\usepackage{caption,subcaption,underscore,tikz-cd}
+\usepackage{indentfirst,multicol,mathtools}
+
+\author{Andrey Yao}
+\title{TODO}
+\setlength{\parindent}{1em}
+\newcommand{\Z}{\mathcal{Z}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\D}{\mathbb{D}}
+\newcommand{\img}{\text{img}}
+\newcommand{\Hom}[1]{\textbf{Hom}(#1)}
+\newcommand{\supp}{\text{supp}}
+\everymath{\displaystyle}
+
+%1b,2,3,6,7,10,11,16.
+
+\begin{document}
+\maketitle
+
+\end{document}

@@ -1,0 +1,14 @@
+eln-cache
+url
+var
+recentf
+auto-save-list
+elpa
+.cache
+.last-package-update-day
+.lsp-session-v1
+emojis
+session.*
+*~
+#*#
+opam-user-setup.el

@@ -10,9 +10,6 @@
  '(eldoc-echo-area-use-multiline-p nil)
  '(flycheck-display-errors-delay 0.2)
  '(flycheck-indication-mode 'left-margin)
- '(global-auto-revert-mode t)
- '(global-eldoc-mode nil)
- '(indent-tabs-mode nil)
  '(inhibit-startup-screen t)
  '(initial-buffer-choice '(lambda nil (get-buffer-create "*dashboard*")))
  '(lsp-diagnostics-provider :flycheck)
@@ -31,7 +28,6 @@
  '(lsp-ui-doc-enable t)
  '(lsp-ui-doc-include-signature t)
  '(lsp-ui-sideline-enable nil)
- '(menu-bar-mode nil)
  '(mode-line-format
    '("%e"
      (:eval
@@ -115,12 +111,9 @@
  '(nyan-bar-length 20)
  '(nyan-wavy-trail t)
  '(package-selected-packages
-   '(caml lsp-ui tuareg auto-highlight-symbol which-key-posframe marginalia mini-frame powerline selectrum flycheck-posframe lsp-mode nyan-mode diminish treemacs-all-the-icons ethan-wspace lsp-pyright typescript-mode which-key which-keyc markdown-preview-mode rustic vscode-dark-plus-theme modern-cpp-font-lock company-coq exec-path-from-shell csv-mode merlin-company magit company-lsp auctex proof-general lsp-ocaml lsp-treemacs company use-package treemacs pyvenv projectile flycheck))
+   '(dashboard pdf-tools caml lsp-ui tuareg auto-highlight-symbol which-key-posframe marginalia mini-frame powerline selectrum flycheck-posframe lsp-mode nyan-mode diminish treemacs-all-the-icons ethan-wspace lsp-pyright typescript-mode which-key which-keyc markdown-preview-mode rustic vscode-dark-plus-theme modern-cpp-font-lock company-coq exec-path-from-shell csv-mode merlin-company magit company-lsp auctex proof-general lsp-ocaml lsp-treemacs company use-package treemacs pyvenv projectile flycheck))
  '(powerline-default-separator 'utf-8)
- '(scroll-bar-adjust-thumb-portion nil)
- '(scroll-bar-mode nil)
  '(selectrum-max-window-height 4)
- '(tool-bar-mode nil)
  '(treemacs-width 20)
  '(warning-suppress-log-types '((comp)))
  '(warning-suppress-types '((comp)))
@@ -130,12 +123,14 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :extend nil :stipple nil :background "#1e1e1e" :foreground "#d4d4d4" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 130 :width normal :foundry "ADBO" :family "JetBrains Mono"))))
+ '(default ((t (:inherit nil :extend nil :stipple nil :background "#1e1e1e" :foreground "#d4d4d4" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :foundry "ADBO" :family "JetBrains Mono"))))
  '(compilation-error ((t (:inherit nil :foreground "red" :underline (:color "light pink" :style wave)))))
  '(flycheck-posframe-error-face ((t (:foreground "red" :inherit flycheck-posframe-face))))
  '(flycheck-posframe-info-face ((t (:foreground "green" :inherit flycheck-posframe-face))))
  '(flycheck-posframe-warning-face ((t (:foreground "gold" :inherit flycheck-posframe-face))))
- '(mode-line ((t (:background "orange" :foreground "SlateBlue4" :weight normal))))
- '(mode-line-buffer-id ((t (:foreground "midnight blue" :weight normal))))
- '(mode-line-inactive ((t (:background "dark orange" :foreground "dim gray" :weight normal))))
+ '(mode-line ((t (:background "dark cyan" :foreground "white" :weight normal))))
+ '(mode-line-buffer-id ((t (:foreground "gold" :weight normal))))
+ '(mode-line-inactive ((t (:background "dark cyan" :foreground "gray" :weight normal))))
+ '(powerline-active1 ((t (:foreground "white" :background "grey11" :inherit mode-line))))
+ '(powerline-active2 ((t (:foreground "white" :background "grey20" :inherit mode-line))))
  '(scroll-bar ((t nil))))

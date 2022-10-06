@@ -4,15 +4,14 @@
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
 
-(global-auto-revert-mode t)
-(delete-selection-mode 1) ; Inserting characters replaces selected region
-(global-eldoc-mode nil)
-(indent-tabs-mode nil)
-(scroll-bar-mode nil)
-(menu-bar-mode nil)
-(tool-bar-mode nil)
-
-(setq use-package-compute-statistics t)
+(setq global-auto-revert-mode t)
+(setq delete-selection-mode 1)
+(setq global-eldoc-mode nil)
+(setq indent-tabs-mode nil)
+(setq menu-bar-mode nil)
+(setq tool-bar-mode nil)
+(setq cua-mode t)
+(set-scroll-bar-mode nil)
 
 ;; Makes emacs transparent in terminal mode
 ;; https://stackoverflow.com/q/19054228
@@ -36,6 +35,13 @@
   :config
   (load-theme 'vscode-dark-plus t))
 
+(setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
+
+(use-package dashboard
+  :ensure t
+  :config
+  (dashboard-setup-startup-hook))
+
 (use-package mini-frame
   :init (mini-frame-mode))
 
@@ -52,7 +58,7 @@
   :diminish)
 
 (use-package selectrum
-  :init (selectrum-mode +1))
+  :init (selectrum-mode 1))
 
 (use-package marginalia
   :init (marginalia-mode))
@@ -96,7 +102,7 @@
 
 (use-package prog-mode
   :hook
-  (prog-mode . linum-mode))
+  (prog-mode . display-line-numbers-mode))
 
 (use-package treemacs
   :defer t
@@ -211,12 +217,14 @@
 ;;;;************************ LaTeX ***************************
 
 (use-package latex
-  :defer t
+  :hook
+  (LaTeX-mode . display-line-numbers-mode)
+  (LaTeX-mode . lsp)
+  :custom
+  (TeX-view-program-selection '((output-pdf "Okular")))
+  (TeX-source-correlate-start-server t)
   :config
   (pdf-tools-install)
-  (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
-        TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
-        TeX-source-correlate-start-server nil)
   (add-hook 'TeX-after-compilation-finished-hook
             #'TeX-revert-document-buffer))
 

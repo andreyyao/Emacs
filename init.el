@@ -4,25 +4,30 @@
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
 
+
 (setq global-auto-revert-mode t)
-(setq delete-selection-mode 1)
 (setq global-eldoc-mode nil)
 (setq indent-tabs-mode nil)
 (setq menu-bar-mode nil)
 (setq tool-bar-mode nil)
-(setq cua-mode t)
 (set-scroll-bar-mode nil)
+(set-fringe-mode '(0 . 0))
+(cua-mode t)
+
 
 ;; Makes emacs transparent in terminal mode
 ;; https://stackoverflow.com/q/19054228
 (defun on-frame-open (frame)
   (if (not (display-graphic-p frame))
-    (set-face-background 'default "unspecified-bg" frame)))
+      (set-face-background 'default "unspecified-bg" frame)))
 (on-frame-open (selected-frame))
 (add-hook 'after-make-frame-functions 'on-frame-open)
 
-(use-package all-the-icons
-  :if (display-graphic-p))
+
+(use-package doom-modeline
+  :ensure t
+  :init (doom-modeline-mode 1))
+
 
 ;; Making sure that emacs inherits same environment variable as shell
 (use-package exec-path-from-shell
@@ -31,56 +36,66 @@
   (setenv "SHELL" "/usr/share/zsh")
   (exec-path-from-shell-initialize))
 
+
 (use-package vscode-dark-plus-theme
   :config
   (load-theme 'vscode-dark-plus t))
 
-(setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
+
+(use-package recentf
+  :custom
+  (recentf-max-saved-items 20)
+  (recentf-max-menu-items 20)
+  (recentf-exclude '("*.aux" "*.log" "*.bcf" "*.run.xml" "*~"))
+  :config
+  (recentf-mode 1)
+  (run-at-time nil (* 5 60) 'recentf-save-list))
+
+
+(defun dashboard-insert-custom (list-size)
+  (insert-button "Treemacs"))
 
 (use-package dashboard
-  :ensure t
+  :after all-the-icons
   :config
-  (dashboard-setup-startup-hook))
+  (dashboard-setup-startup-hook)
+  (add-to-list 'dashboard-item-generators  '(treemacs . dashboard-insert-custom))
+  (add-hook 'server-after-make-frame-hook
+	    (lambda ()
+	      (when (string= (buffer-name) "*dashboard*") (revert-buffer))))
+  :custom
+  (dashboard-startup-banner 'logo)
+  (dashboard-set-heading-icons t)
+  (dashboard-set-file-icons t)
+  (dashboard-set-navigator t)
+  (dashboard-center-content t)
+  (dashboard-items '((recents  . 10)
+		     (treemacs . t))))
 
-(use-package mini-frame
-  :init (mini-frame-mode))
 
 (use-package which-key
   :diminish which-key-mode
-  :config
-  (which-key-mode))
+  :config (which-key-mode))
 
-(use-package which-key-posframe
-  :init (which-key-posframe-mode 1))
 
-(use-package eldoc-mode
-  :defer t
-  :diminish)
+(use-package vertico
+  :init (vertico-mode)
+  :custom (vertico-count 4))
 
-(use-package selectrum
-  :init (selectrum-mode 1))
 
 (use-package marginalia
   :init (marginalia-mode))
 
-(use-package pdf-tools
-   :defer t
-   :config
-   (pdf-tools-install))
-
-(defun contextual-nyan (&optional frame)
-  "Display the menubar in FRAME (default: selected frame) if on a
-    graphical display, but hide it if in terminal."
-  (interactive)
-  (nyan-mode (if (display-graphic-p frame)
-                 t -1)))
-
-(add-hook 'after-make-frame-functions 'contextual-nyan)
 
 (use-package nyan-mode
-  :defer t
+  :custom
+  (nyan-minimum-window-width 48)
+  (nyan-animate-nyancat t)
+  (nyan-bar-length 16)
+  (nyan-wavy-trail t)
   :config
   (nyan-mode t))
+
 
 (use-package ethan-wspace
   :diminish ethan-wspace-mode
@@ -98,17 +113,20 @@
   ;; Ignore no trailing newline error
   (setq-default ethan-wspace-errors (remove 'no-nl-eof ethan-wspace-errors)))
 
-;;;;********************** PROGRAM ***************************
 
+;;;;********************** PROGRAM ***************************
 (use-package prog-mode
   :hook
   (prog-mode . display-line-numbers-mode))
 
+
 (use-package treemacs
   :defer t
+  :custom (treemacs-width 20)
   :config
   (require 'treemacs-all-the-icons)
   (treemacs-load-theme "all-the-icons"))
+
 
 (use-package lsp-mode
   :hook
@@ -118,41 +136,63 @@
     typescript-mode ; ts-ls (tsserver wrapper)
     python-mode     ; pyright
     rustic-mode     ; rust-analyzer
-    tuareg-mode)    ; ocaml-lsp-server
+    tuareg-mode     ; ocaml-lsp-server
+    haskell-mode)   ; haskell-language-server
    . lsp-deferred)
   :custom
   (read-process-output-max (* 1024 1024)) ; 1MB
   (gc-cons-threshold 100000000) ; lsp-mode speedup
+  (lsp-diagnostics-provider :flycheck)
+  (lsp-enable-imenu nil)
+  (lsp-enable-on-type-formatting nil)
+  (lsp-enable-snippet nil)
+  (lsp-enable-symbol-highlighting t)
+  (lsp-headerline-breadcrumb-segments '(project file symbols))
+  (lsp-idle-delay 0.5)
+  (lsp-lens-enable nil)
+  (lsp-log-io nil)
+  (lsp-modeline-code-actions-enable nil)
+  (lsp-modeline-diagnostics-enable nil)
+  (lsp-semantic-tokens-enable nil)
+  (lsp-signature-auto-activate nil)
+  (lsp-signature-render-documentation nil)
+  (lsp-ui-doc-enable t)
+  (lsp-ui-doc-include-signature t)
+  (lsp-ui-sideline-enable nil)
   :commands lsp)
+
 
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode)
   :commands lsp-ui-mode)
 
+
 (use-package yasnippet
   :diminish yas-minor-mode
   :hook (latex-mode . yas-minor-mode))
 
+
 (use-package lsp-treemacs
  :after (lsp-mode treemacs))
+
 
 (use-package flycheck
   :custom
   (flycheck-check-syntax-automatically '(save new-line))
+  (flycheck-deferred-syntax-check nil)
+  (flycheck-display-errors-delay 0.2)
   (flycheck-display-errors-function nil)
   (flycheck-highlighting-mode 'symbols)
-  (flycheck-standard-error-navigation t)
-  (flycheck-deferred-syntax-check nil))
+  (flycheck-indication-mode 'left-margin)
+  (flycheck-standard-error-navigation t))
 
-(use-package flycheck-posframe
-  :after flycheck
-  :config (add-hook 'flycheck-mode-hook #'flycheck-posframe-mode))
 
 (use-package company
   :diminish company-mode
   :custom
-  (company-minimum-prefix-length 3)
+  (company-minimum-prefix-length 2)
   (company-idle-delay 0.1))
+
 
 ;;;;********************** Python 🐍 *************************
 ;; (use-package python-mode
@@ -174,7 +214,6 @@
 
 
 ;;;;********************** OCaml 🐪 **************************
-
 (defun ocamllsp-setup ()
   (lsp-register-client
    (make-lsp-client
@@ -190,7 +229,6 @@
   (with-eval-after-load 'company
     (add-to-list 'company-backends 'merlin-company-backend))
   (with-eval-after-load 'lsp-mode
-    (setq lsp-enabled-clients '(ocamllsp))
     (ocamllsp-setup))
   (lambda ()
     (make-local-variable 'ac-ignores)
@@ -215,7 +253,6 @@
 
 
 ;;;;************************ LaTeX ***************************
-
 (use-package latex
   :hook
   (LaTeX-mode . display-line-numbers-mode)
@@ -224,35 +261,46 @@
   (TeX-view-program-selection '((output-pdf "Okular")))
   (TeX-source-correlate-start-server t)
   :config
-  (pdf-tools-install)
   (add-hook 'TeX-after-compilation-finished-hook
             #'TeX-revert-document-buffer))
 
 
 ;;;;*********************** Coq 🐓 ***************************
-
 (use-package proof-general
   :defer t
   :custom (proof-splash-enable nil))
+
 
 (use-package company-coq
   :defer t
   :hook (coq-mode . company-coq-mode)
   :custom (company-coq-live-on-the-edge t))
 
-;;;;********************** Rust 🦀 ***************************
 
+;;;;********************** Rust 🦀 ***************************
 (use-package rustic
   :defer t)
 
-;;;;************************ C++ *****************************
 
+;;;;************************ C++ *****************************
 (use-package c++-mode
   :defer t
   :hook
   (c++-mode . modern-c++-font-lock-mode))
 
-;;;;*********************Type script ***********************
 
+;;;;********************** Type script ***********************
 (use-package typescript-mode
   :defer t)
+
+
+;;;;************************ Haskell *************************
+(use-package lsp-haskell
+  :config
+  (setf lsp-haskell-server-path "~/.ghcup/bin/haskell-language-server-wrapper"))
+
+
+;;;;************************* ELisp **************************
+(use-package emacs-lisp-mode
+  :hook
+  (emacs-lisp-mode . company-mode))

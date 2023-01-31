@@ -15,6 +15,12 @@
 (cua-mode t)
 
 
+(defun open-init-file ()
+  "Open the init file."
+  (interactive)
+  (find-file user-init-file))
+
+
 ;; Makes emacs transparent in terminal mode
 ;; https://stackoverflow.com/q/19054228
 (defun on-frame-open (frame)
@@ -52,8 +58,14 @@
   (run-at-time nil (* 5 60) 'recentf-save-list))
 
 
-(defun dashboard-insert-custom (list-size)
-  (insert-button "Treemacs"))
+;; Format: "(icon title help action face prefix suffix)"
+(setq dashboard-navigator-buttons
+      `(;; line1
+        ((,(all-the-icons-faicon "tree" :height 1.1 :v-adjust 0.0)
+          "Treemacs"
+          "Open Treemacs"
+          (lambda (&rest _) (treemacs)))
+	 ("⚙" "init.el" "Configure Emacs" (lambda (&rest _) (open-init-file))))))
 
 (use-package dashboard
   :after all-the-icons
@@ -69,8 +81,7 @@
   (dashboard-set-file-icons t)
   (dashboard-set-navigator t)
   (dashboard-center-content t)
-  (dashboard-items '((recents  . 10)
-		     (treemacs . t))))
+  (dashboard-items '((recents  . 15))))
 
 
 (use-package which-key
@@ -267,8 +278,13 @@
 
 ;;;;*********************** Coq 🐓 ***************************
 (use-package proof-general
+  :after all-the-icons
+  :init
+  ;; all-the-icons thinks ".v" files are verilog.
+  (add-to-list 'all-the-icons-extension-icon-alist '("v" all-the-icons-fileicon "coq" :height 1.0 :v-adjust -0.2 :face all-the-icons-yellow))
   :defer t
-  :custom (proof-splash-enable nil))
+  :custom
+  (proof-splash-enable nil))
 
 
 (use-package company-coq

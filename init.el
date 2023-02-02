@@ -30,17 +30,17 @@
 (add-hook 'after-make-frame-functions 'on-frame-open)
 
 
-(use-package doom-modeline
-  :ensure t
-  :init (doom-modeline-mode 1))
-
-
 ;; Making sure that emacs inherits same environment variable as shell
 (use-package exec-path-from-shell
   :config
   (setq exec-path-from-shell-variables '("PATH"))
   (setenv "SHELL" "/usr/share/zsh")
   (exec-path-from-shell-initialize))
+
+
+(use-package doom-modeline
+  :ensure t
+  :init (doom-modeline-mode 1))
 
 
 (use-package vscode-dark-plus-theme
@@ -88,25 +88,35 @@
   :diminish which-key-mode
   :config (which-key-mode))
 
+(use-package all-the-icons-completion
+  :after (marginalia all-the-icons)
+  :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
+  :init
+  (all-the-icons-completion-mode))
 
 (use-package vertico
   :init (vertico-mode)
   :custom (vertico-count 4))
 
-
 (use-package marginalia
   :init (marginalia-mode))
 
-
 (use-package nyan-mode
   :custom
-  (nyan-minimum-window-width 48)
+  (nyan-minimum-window-width 20)
   (nyan-animate-nyancat t)
   (nyan-bar-length 16)
   (nyan-wavy-trail t)
   :config
-  (nyan-mode t))
-
+  (nyan-mode t)
+  (setq nyan-cat-image
+        (create-image nyan-cat-face-image 'xpm nil :scale 2 :ascent 'center))
+  (setq nyan-animation-frames
+        (mapcar
+	 (lambda (id)
+           (create-image (concat nyan-directory (format "img/nyan-frame-%d.xpm" id))
+                         'xpm nil :scale 2 :ascent 95))
+         '(1 2 3 4 5 6))))
 
 (use-package ethan-wspace
   :diminish ethan-wspace-mode

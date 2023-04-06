@@ -14,7 +14,7 @@
  '(line-number-mode nil)
  '(mode-line-percent-position nil)
  '(package-selected-packages
-   '(all-the-icons-completion projectile lsp-haskell haskell-mode vertico doom-modeline wc-mode dashboard caml lsp-ui tuareg auto-highlight-symbol marginalia lsp-mode nyan-mode diminish treemacs-all-the-icons ethan-wspace lsp-pyright typescript-mode which-key which-keyc markdown-preview-mode rustic vscode-dark-plus-theme modern-cpp-font-lock company-coq exec-path-from-shell merlin-company magit company-lsp auctex proof-general lsp-ocaml lsp-treemacs company use-package treemacs pyvenv))
+   '(flycheck all-the-icons-completion projectile lsp-haskell haskell-mode vertico doom-modeline wc-mode dashboard caml lsp-ui tuareg auto-highlight-symbol marginalia lsp-mode nyan-mode diminish treemacs-all-the-icons ethan-wspace lsp-pyright typescript-mode which-key which-keyc markdown-preview-mode rustic vscode-dark-plus-theme modern-cpp-font-lock company-coq exec-path-from-shell merlin-company magit company-lsp auctex proof-general lsp-ocaml lsp-treemacs company use-package treemacs pyvenv))
  '(warning-suppress-log-types '((comp)))
  '(warning-suppress-types '((comp))))
 (custom-set-faces

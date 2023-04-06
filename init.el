@@ -8,11 +8,16 @@
 (setq global-auto-revert-mode t)
 (setq global-eldoc-mode nil)
 (setq indent-tabs-mode nil)
-(setq menu-bar-mode nil)
-(setq tool-bar-mode nil)
 (set-scroll-bar-mode nil)
 (set-fringe-mode '(0 . 0))
+(menu-bar-mode -1)
+(tool-bar-mode -1)
 (cua-mode t)
+
+
+(global-set-key (kbd "C-s") 'save-buffer)
+(global-set-key (kbd "C-f") 'isearch-forward)
+(define-key isearch-mode-map "\C-f" 'isearch-repeat-forward)
 
 
 (defun open-init-file ()
@@ -140,14 +145,12 @@
   :hook
   (prog-mode . display-line-numbers-mode))
 
-
 (use-package treemacs
   :defer t
   :custom (treemacs-width 20)
   :config
   (require 'treemacs-all-the-icons)
   (treemacs-load-theme "all-the-icons"))
-
 
 (use-package lsp-mode
   :hook
@@ -281,6 +284,7 @@
   :custom
   (TeX-view-program-selection '((output-pdf "Okular")))
   (TeX-source-correlate-start-server t)
+  (TeX-save-query nil)
   :config
   (add-hook 'TeX-after-compilation-finished-hook
             #'TeX-revert-document-buffer))

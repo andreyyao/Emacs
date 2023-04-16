@@ -26,15 +26,6 @@
   (find-file user-init-file))
 
 
-;; Makes emacs transparent in terminal mode
-;; https://stackoverflow.com/q/19054228
-(defun on-frame-open (frame)
-  (if (not (display-graphic-p frame))
-      (set-face-background 'default "unspecified-bg" frame)))
-(on-frame-open (selected-frame))
-(add-hook 'after-make-frame-functions 'on-frame-open)
-
-
 ;; Making sure that emacs inherits same environment variable as shell
 (use-package exec-path-from-shell
   :config
@@ -42,69 +33,7 @@
   (setenv "SHELL" "/usr/share/zsh")
   (exec-path-from-shell-initialize))
 
-
-(use-package doom-modeline
-  :ensure t
-  :init (doom-modeline-mode 1))
-
-
-(use-package vscode-dark-plus-theme
-  :config
-  (load-theme 'vscode-dark-plus t))
-
-
-(use-package recentf
-  :custom
-  (recentf-max-saved-items 20)
-  (recentf-max-menu-items 20)
-  (recentf-exclude '("*.aux" "*.log" "*.bcf" "*.run.xml" "*~"))
-  :config
-  (recentf-mode 1)
-  (run-at-time nil (* 5 60) 'recentf-save-list))
-
-
-;; Format: "(icon title help action face prefix suffix)"
-(setq dashboard-navigator-buttons
-      `(;; line1
-        ((,(all-the-icons-faicon "tree" :height 1.1 :v-adjust 0.0)
-          "Treemacs"
-          "Open Treemacs"
-          (lambda (&rest _) (treemacs)))
-	 ("⚙" "init.el" "Configure Emacs" (lambda (&rest _) (open-init-file))))))
-
-(use-package dashboard
-  :after all-the-icons
-  :config
-  (dashboard-setup-startup-hook)
-  (add-to-list 'dashboard-item-generators  '(treemacs . dashboard-insert-custom))
-  (add-hook 'server-after-make-frame-hook
-	    (lambda ()
-	      (when (string= (buffer-name) "*dashboard*") (revert-buffer))))
-  :custom
-  (dashboard-startup-banner 'logo)
-  (dashboard-set-heading-icons t)
-  (dashboard-set-file-icons t)
-  (dashboard-set-navigator t)
-  (dashboard-center-content t)
-  (dashboard-items '((recents  . 15))))
-
-
-(use-package which-key
-  :diminish which-key-mode
-  :config (which-key-mode))
-
-(use-package all-the-icons-completion
-  :after (marginalia all-the-icons)
-  :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
-  :init
-  (all-the-icons-completion-mode))
-
-(use-package vertico
-  :init (vertico-mode)
-  :custom (vertico-count 4))
-
-(use-package marginalia
-  :init (marginalia-mode))
+(load-theme 'doom-one)
 
 (use-package nyan-mode
   :custom
@@ -123,8 +52,73 @@
                          'xpm nil :scale 2 :ascent 95))
          '(1 2 3 4 5 6))))
 
+(use-package doom-modeline
+  :ensure t
+  :config
+  (setq doom-modeline-minor-modes t)
+  (minions-mode 1)
+  (doom-modeline-def-modeline 'personal-mode-line
+  '(bar matches buffer-info remote-host parrot)
+  '(misc-info minor-modes major-mode process vcs checker))
+  (add-hook 'doom-modeline-mode-hook
+            (lambda ()
+              (doom-modeline-set-modeline 'personal-mode-line 'default)))
+  (doom-modeline-mode 1))
+
+(require 'git-commit)
+
+(use-package recentf
+  :custom
+  (recentf-max-saved-items 20)
+  (recentf-max-menu-items 20)
+  (recentf-exclude '("*.aux" "*.log" "*.bcf" "*.org" "*.run.xml" "*~"))
+  :config
+  (recentf-mode 1)
+  (run-at-time nil (* 5 60) 'recentf-save-list))
+
+
+;; Format: "(icon title help action face prefix suffix)"
+(setq dashboard-navigator-buttons
+      `((("🌲" "Treemacs" "Open Treemacs" (lambda (&rest _) (treemacs)))
+	 ("🦄" "Roam" "Open Org Roam" (lambda (&rest _) (org-roam-node-find)))
+	 ("⚙" "init.el" "Configure Emacs" (lambda (&rest _) (open-init-file))))))
+
+(use-package dashboard
+  :after all-the-icons
+  :config
+  (dashboard-setup-startup-hook)
+  (add-hook 'server-after-make-frame-hook
+	    (lambda ()
+	      (when (string= (buffer-name) "*dashboard*") (revert-buffer))))
+  :custom
+  (dashboard-startup-banner "~/.emacs.d/emacs.png")
+  (dashboard-banner-logo-title nil)
+  (dashboard-set-heading-icons t)
+  (dashboard-recentf-show-base t)
+  (dashboard-recentf-item-format "%s")
+  (dashboard-set-file-icons t)
+  (dashboard-set-navigator t)
+  (dashboard-center-content t)
+  (dashboard-items '((recents  . 15) (projects . 5))))
+
+
+(use-package which-key
+  :config (which-key-mode))
+
+(use-package all-the-icons-completion
+  :after (marginalia all-the-icons)
+  :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
+  :init
+  (all-the-icons-completion-mode))
+
+(use-package vertico
+  :init (vertico-mode)
+  :custom (vertico-count 4))
+
+(use-package marginalia
+  :init (marginalia-mode))
+
 (use-package ethan-wspace
-  :diminish ethan-wspace-mode
   :config
   ;; Turn off `mode-require-final-newline' since ethan-wspace
   ;; supersedes `require-final-newline'.
@@ -139,6 +133,36 @@
   ;; Ignore no trailing newline error
   (setq-default ethan-wspace-errors (remove 'no-nl-eof ethan-wspace-errors)))
 
+
+(use-package org-mode
+  :hook (org-mode . company-mode)
+  :custom-face
+  (org-level-1 ((t (:height 1.3))))
+  (org-level-2 ((t (:height 1.2))))
+  (org-level-3 ((t (:height 1.1))))
+  :config (setq org-hide-block-startup t))
+
+
+(use-package org-roam
+  :init
+  (setq org-roam-v2-ack t) ;; Acknowledge V2 upgrade
+  (setq org-directory (concat (getenv "HOME") "/Documents/OrgRoam/"))
+  :custom
+  (org-roam-directory (file-truename org-directory))
+  :config
+  (org-roam-setup)
+  :bind (("C-c n f" . org-roam-node-find)
+         ("C-c n r" . org-roam-node-random)
+         (:map org-mode-map
+               (("C-c n i" . org-roam-node-insert)
+                ("C-c n o" . org-id-get-create)
+                ("C-c n t" . org-roam-tag-add)
+                ("C-c n a" . org-roam-alias-add)
+                ("C-c n l" . org-roam-buffer-toggle)))))
+
+(use-package org-superstar
+  :hook (org-mode org-roam-mode)
+  :config (org-superstar-configure-like-org-bullets))
 
 ;;;;********************** PROGRAM ***************************
 (use-package prog-mode
@@ -192,7 +216,6 @@
 
 
 (use-package yasnippet
-  :diminish yas-minor-mode
   :hook (latex-mode . yas-minor-mode))
 
 
@@ -212,7 +235,6 @@
 
 
 (use-package company
-  :diminish company-mode
   :custom
   (company-minimum-prefix-length 2)
   (company-idle-delay 0.1))
@@ -286,6 +308,7 @@
   (TeX-source-correlate-start-server t)
   (TeX-save-query nil)
   :config
+  (setq TeX-electric-math (cons "$" "$"))
   (add-hook 'TeX-after-compilation-finished-hook
             #'TeX-revert-document-buffer))
 

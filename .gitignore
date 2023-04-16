@@ -12,3 +12,6 @@ session.*
 *~
 #*#
 opam-user-setup.el
+.dap-breakpoints
+org-roam.db
+projectile-bookmarks.eld

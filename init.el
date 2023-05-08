@@ -33,7 +33,27 @@
   (setenv "SHELL" "/usr/share/zsh")
   (exec-path-from-shell-initialize))
 
-(load-theme 'doom-one)
+
+(use-package doom-themes
+  :config
+  (load-theme 'doom-one)
+  (set-face-attribute 'highlight nil :foreground 'unspecified :background "#404040"))
+
+
+(use-package doom-modeline
+  :ensure t
+  :config
+  (setq doom-modeline-minor-modes t)
+  (minions-mode 1)
+  (doom-modeline-def-modeline 'personal-mode-line
+    '(buffer-info remote-host buffer-position)
+    '(misc-info minor-modes major-mode process vcs checker))
+  (add-hook 'doom-modeline-mode-hook
+            (lambda ()
+              (doom-modeline-set-modeline 'personal-mode-line 'default)))
+  (doom-modeline-mode 1)
+  (setq mode-line-percent-position nil))
+
 
 (use-package nyan-mode
   :custom
@@ -52,20 +72,30 @@
                          'xpm nil :scale 2 :ascent 95))
          '(1 2 3 4 5 6))))
 
-(use-package doom-modeline
-  :ensure t
-  :config
-  (setq doom-modeline-minor-modes t)
-  (minions-mode 1)
-  (doom-modeline-def-modeline 'personal-mode-line
-  '(bar matches buffer-info remote-host parrot)
-  '(misc-info minor-modes major-mode process vcs checker))
-  (add-hook 'doom-modeline-mode-hook
-            (lambda ()
-              (doom-modeline-set-modeline 'personal-mode-line 'default)))
-  (doom-modeline-mode 1))
 
-(require 'git-commit)
+(use-package dashboard
+  :config
+  (dashboard-setup-startup-hook)
+  (setq dashboard-icon-type 'nerd-icons)
+  (add-hook 'server-after-make-frame-hook
+	    (lambda ()
+	      (when (string= (buffer-name) "*dashboard*") (revert-buffer))))
+  (setq dashboard-navigator-buttons
+	`((("🌲" "Treemacs" "Open Treemacs" (lambda (&rest _) (treemacs)))
+	   ("🦄" "Roam" "Open Org Roam" (lambda (&rest _) (org-roam-node-find)))
+	   (,(nerd-icons-codicon "nf-cod-settings_gear" :face 'nerd-icons-dsilver) "init.el" "Settings" (lambda (&rest _) (open-init-file))))))
+  :custom
+  (dashboard-startup-banner "~/.emacs.d/emacs.png")
+  (dashboard-display-icons-p t)
+  (dashboard-banner-logo-title nil)
+  (dashboard-set-heading-icons t)
+  (dashboard-recentf-show-base t)
+  (dashboard-recentf-item-format "%s")
+  (dashboard-set-file-icons t)
+  (dashboard-set-navigator t)
+  (dashboard-center-content t)
+  (dashboard-items '((recents  . 15) (projects . 5))))
+
 
 (use-package recentf
   :custom
@@ -77,33 +107,9 @@
   (run-at-time nil (* 5 60) 'recentf-save-list))
 
 
-;; Format: "(icon title help action face prefix suffix)"
-(setq dashboard-navigator-buttons
-      `((("🌲" "Treemacs" "Open Treemacs" (lambda (&rest _) (treemacs)))
-	 ("🦄" "Roam" "Open Org Roam" (lambda (&rest _) (org-roam-node-find)))
-	 ("⚙" "init.el" "Configure Emacs" (lambda (&rest _) (open-init-file))))))
-
-(use-package dashboard
-  :after all-the-icons
-  :config
-  (dashboard-setup-startup-hook)
-  (add-hook 'server-after-make-frame-hook
-	    (lambda ()
-	      (when (string= (buffer-name) "*dashboard*") (revert-buffer))))
-  :custom
-  (dashboard-startup-banner "~/.emacs.d/emacs.png")
-  (dashboard-banner-logo-title nil)
-  (dashboard-set-heading-icons t)
-  (dashboard-recentf-show-base t)
-  (dashboard-recentf-item-format "%s")
-  (dashboard-set-file-icons t)
-  (dashboard-set-navigator t)
-  (dashboard-center-content t)
-  (dashboard-items '((recents  . 15) (projects . 5))))
-
-
 (use-package which-key
   :config (which-key-mode))
+
 
 (use-package all-the-icons-completion
   :after (marginalia all-the-icons)
@@ -111,12 +117,21 @@
   :init
   (all-the-icons-completion-mode))
 
+
 (use-package vertico
   :init (vertico-mode)
   :custom (vertico-count 4))
 
+
+(use-package orderless
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles basic partial-completion)))))
+
+
 (use-package marginalia
   :init (marginalia-mode))
+
 
 (use-package ethan-wspace
   :config
@@ -133,6 +148,8 @@
   ;; Ignore no trailing newline error
   (setq-default ethan-wspace-errors (remove 'no-nl-eof ethan-wspace-errors)))
 
+
+;; <---------------------- ORG ----------------------------->
 
 (use-package org-mode
   :hook (org-mode . company-mode)
@@ -160,18 +177,27 @@
                 ("C-c n a" . org-roam-alias-add)
                 ("C-c n l" . org-roam-buffer-toggle)))))
 
-(use-package org-superstar
-  :hook (org-mode org-roam-mode)
-  :config (org-superstar-configure-like-org-bullets))
 
-;;;;********************** PROGRAM ***************************
+;; (use-package org-superstar
+;;   :hook (org-mode org-roam-mode)
+;;   :config (org-superstar-configure-like-org-bullets))
+
+
+(use-package org-fragtog
+  :hook (org-mode . org-fragtog-mode))
+
+;; <----------------------- END ORG ------------------------->
+
+;; <----------------------- PROGRAM ------------------------->
 (use-package prog-mode
   :hook
   (prog-mode . display-line-numbers-mode))
 
 (use-package treemacs
   :defer t
-  :custom (treemacs-width 20)
+  :custom
+  (treemacs-width 20)
+  (treemacs-hide-gitignored-files-mode t)
   :config
   (require 'treemacs-all-the-icons)
   (treemacs-load-theme "all-the-icons"))
@@ -220,7 +246,7 @@
 
 
 (use-package lsp-treemacs
- :after (lsp-mode treemacs))
+  :after (lsp-mode treemacs))
 
 
 (use-package flycheck
@@ -302,8 +328,11 @@
 (use-package latex
   :hook
   (LaTeX-mode . display-line-numbers-mode)
+  (LaTeX-mode . prettify-symbols-mode)
+  (LaTeX-mode . LaTeX-math-mode)
   (LaTeX-mode . lsp)
   :custom
+  (LaTeX-electric-left-right-brace t)
   (TeX-view-program-selection '((output-pdf "Okular")))
   (TeX-source-correlate-start-server t)
   (TeX-save-query nil)

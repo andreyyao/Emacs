@@ -4,14 +4,25 @@
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
 
+;; Minimize garbage collection during startup
+(setq gc-cons-threshold most-positive-fixnum)
+(setq esup-depth 0)
+(use-package esup
+  :ensure t)
+
+;; Lower threshold back to 8 MiB (default is 800kB)
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (setq gc-cons-threshold (expt 2 23))))
+
 
 (setq global-auto-revert-mode t)
 (setq global-eldoc-mode nil)
 (setq indent-tabs-mode nil)
 (set-scroll-bar-mode nil)
 (set-fringe-mode '(0 . 0))
-(menu-bar-mode -1)
-(tool-bar-mode -1)
+;; (menu-bar-mode -1) ; Modify ~/.Xresources to prevent flashing
+;; (tool-bar-mode -1)
 (cua-mode t)
 
 
@@ -378,6 +389,7 @@
 
 ;;;;************************ Haskell *************************
 (use-package lsp-haskell
+  :defer t
   :config
   (setf lsp-haskell-server-path "~/.ghcup/bin/haskell-language-server-wrapper"))
 

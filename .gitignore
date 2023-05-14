@@ -19,5 +19,4 @@ transient
 package-quickstart.elc
 package-quickstart.el
 elisp-autofmt-cache
-early-init.el
 #*#

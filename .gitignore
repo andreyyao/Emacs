@@ -15,3 +15,9 @@ opam-user-setup.el
 .dap-breakpoints
 org-roam.db
 projectile-bookmarks.eld
+transient
+package-quickstart.elc
+package-quickstart.el
+elisp-autofmt-cache
+early-init.el
+#*#

@@ -1,4 +1,5 @@
 (require 'package)
+(setq package-quickstart t)
 (setq custom-file (concat user-emacs-directory "custom.el"))
 (load custom-file)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
@@ -6,23 +7,18 @@
 
 ;; Minimize garbage collection during startup
 (setq gc-cons-threshold most-positive-fixnum)
+;; Set it back to reduce long freezing during GC
+(add-hook 'after-init-hook
+          (lambda ()
+           (setq gc-cons-threshold (* 1024 1024 100))))
 (setq esup-depth 0)
 (use-package esup
   :ensure t)
-
-;; Lower threshold back to 8 MiB (default is 800kB)
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (setq gc-cons-threshold (expt 2 23))))
 
 
 (setq global-auto-revert-mode t)
 (setq global-eldoc-mode nil)
 (setq indent-tabs-mode nil)
-(set-scroll-bar-mode nil)
-(set-fringe-mode '(0 . 0))
-;; (menu-bar-mode -1) ; Modify ~/.Xresources to prevent flashing
-;; (tool-bar-mode -1)
 (cua-mode t)
 
 
@@ -54,11 +50,9 @@
 (use-package doom-modeline
   :ensure t
   :config
-  (setq doom-modeline-minor-modes t)
-  (minions-mode 1)
   (doom-modeline-def-modeline 'personal-mode-line
     '(buffer-info remote-host buffer-position)
-    '(misc-info minor-modes major-mode process vcs checker))
+    '(misc-info major-mode process vcs checker))
   (add-hook 'doom-modeline-mode-hook
             (lambda ()
               (doom-modeline-set-modeline 'personal-mode-line 'default)))
@@ -86,7 +80,7 @@
 
 (use-package dashboard
   :config
-  (dashboard-setup-startup-hook)
+  ;; (dashboard-setup-startup-hook)
   (setq dashboard-icon-type 'nerd-icons)
   (add-hook 'server-after-make-frame-hook
 	    (lambda ()
@@ -95,6 +89,8 @@
 	`((("🌲" "Treemacs" "Open Treemacs" (lambda (&rest _) (treemacs)))
 	   ("🦄" "Roam" "Open Org Roam" (lambda (&rest _) (org-roam-node-find)))
 	   (,(nerd-icons-codicon "nf-cod-settings_gear" :face 'nerd-icons-dsilver) "init.el" "Settings" (lambda (&rest _) (open-init-file))))))
+  :custom-face
+  (dashboard-navigator ((t nil)))
   :custom
   (dashboard-startup-banner "~/.emacs.d/emacs.png")
   (dashboard-display-icons-p t)
@@ -164,6 +160,7 @@
 
 (use-package org-mode
   :hook (org-mode . company-mode)
+  :custom (org-support-shift-select t)
   :custom-face
   (org-level-1 ((t (:height 1.3))))
   (org-level-2 ((t (:height 1.2))))
@@ -261,6 +258,7 @@
 
 
 (use-package flycheck
+  :defer
   :custom
   (flycheck-check-syntax-automatically '(save new-line))
   (flycheck-deferred-syntax-check nil)

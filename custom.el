@@ -7,7 +7,7 @@
  '(inhibit-startup-screen t)
  '(line-number-mode nil)
  '(package-selected-packages
-   '(elisp-autofmt rainbow-delimiters material-theme esup emacs-lisp-mode c++-mode latex yasnippet prog-mode org-mode doom-modeline nerd-icons dashboard orderless org-fragtog doom-themes org-superstar org-roam-ui org-roam dap-mode flycheck-posframe flycheck all-the-icons-completion projectile lsp-haskell haskell-mode vertico wc-mode caml lsp-ui tuareg auto-highlight-symbol marginalia lsp-mode nyan-mode treemacs-all-the-icons ethan-wspace lsp-pyright typescript-mode which-key which-keyc markdown-preview-mode rustic modern-cpp-font-lock company-coq exec-path-from-shell merlin-company magit company-lsp auctex proof-general lsp-ocaml lsp-treemacs company use-package treemacs pyvenv))
+   '(lsp-haskell elisp-autofmt rainbow-delimiters material-theme esup emacs-lisp-mode c++-mode latex yasnippet prog-mode org-mode doom-modeline nerd-icons dashboard orderless org-fragtog doom-themes org-superstar org-roam-ui org-roam dap-mode flycheck-posframe flycheck all-the-icons-completion projectile haskell-mode vertico wc-mode caml lsp-ui tuareg auto-highlight-symbol marginalia lsp-mode nyan-mode treemacs-all-the-icons ethan-wspace lsp-pyright typescript-mode which-key which-keyc markdown-preview-mode rustic modern-cpp-font-lock company-coq exec-path-from-shell merlin-company magit company-lsp auctex proof-general lsp-ocaml lsp-treemacs company use-package treemacs pyvenv))
  '(warning-suppress-log-types '((comp)))
  '(warning-suppress-types '((comp))))
 (custom-set-faces

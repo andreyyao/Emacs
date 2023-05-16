@@ -80,20 +80,21 @@
 
 (use-package dashboard
   :config
-  ;; (dashboard-setup-startup-hook)
-  (setq dashboard-icon-type 'nerd-icons)
-  (add-hook 'server-after-make-frame-hook
-	    (lambda ()
-	      (when (string= (buffer-name) "*dashboard*") (revert-buffer))))
+  (dashboard-setup-startup-hook)
+  (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
+  ;; (add-hook 'server-after-make-frame-hook
+  ;; 	    (lambda ()
+  ;; 	      (when (string= (buffer-name) "*dashboard*") (revert-buffer))))
   (setq dashboard-navigator-buttons
 	`((("🌲" "Treemacs" "Open Treemacs" (lambda (&rest _) (treemacs)))
 	   ("🦄" "Roam" "Open Org Roam" (lambda (&rest _) (org-roam-node-find)))
-	   (,(nerd-icons-codicon "nf-cod-settings_gear" :face 'nerd-icons-dsilver) "init.el" "Settings" (lambda (&rest _) (open-init-file))))))
+	   ("🔧" "init.el" "Settings" (lambda (&rest _) (open-init-file))))))
   :custom-face
   (dashboard-navigator ((t nil)))
   :custom
-  (dashboard-startup-banner "~/.emacs.d/emacs.png")
+  (dashboard-startup-banner "~/.emacs.d/emacs_banner.txt")
   (dashboard-display-icons-p t)
+  (dashboard-icon-type 'nerd-icons)
   (dashboard-banner-logo-title nil)
   (dashboard-set-heading-icons t)
   (dashboard-recentf-show-base t)
@@ -134,6 +135,13 @@
   :custom
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles basic partial-completion)))))
+
+;; We follow a suggestion by company maintainer u/hvis:
+;; https://www.reddit.com/r/emacs/comments/nichkl/comment/gz1jr3s/
+(defun company-completion-styles (capf-fn &rest args)
+  (let ((completion-styles '(basic partial-completion)))
+    (apply capf-fn args)))
+(advice-add 'company-capf :around #'company-completion-styles)
 
 
 (use-package marginalia
@@ -213,8 +221,7 @@
 (use-package lsp-mode
   :hook
   ((c-mode          ; clangd
-    c++-mode        ; clangd
-    c-or-c++-mode   ; clangd
+    c++-mode         ; clangd
     typescript-mode ; ts-ls (tsserver wrapper)
     python-mode     ; pyright
     rustic-mode     ; rust-analyzer
@@ -334,7 +341,7 @@
 
 
 ;;;;************************ LaTeX ***************************
-(use-package latex
+(use-package AucTeX
   :hook
   (LaTeX-mode . display-line-numbers-mode)
   (LaTeX-mode . prettify-symbols-mode)
@@ -375,9 +382,7 @@
 
 ;;;;************************ C++ *****************************
 (use-package c++-mode
-  :defer t
-  :hook
-  (c++-mode . modern-c++-font-lock-mode))
+  :defer t)
 
 
 ;;;;********************** Type script ***********************
@@ -386,10 +391,9 @@
 
 
 ;;;;************************ Haskell *************************
-(use-package lsp-haskell
+(use-package haskell
   :defer t
-  :config
-  (setf lsp-haskell-server-path "~/.ghcup/bin/haskell-language-server-wrapper"))
+  :bind ("C-c C-c" . 'haskell-compile))
 
 
 ;;;;************************* ELisp **************************

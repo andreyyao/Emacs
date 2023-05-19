@@ -1,5 +1,5 @@
 (require 'package)
-(setq package-quickstart t)
+;; (setq package-quickstart t)
 (setq custom-file (concat user-emacs-directory "custom.el"))
 (load custom-file)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
@@ -10,10 +10,10 @@
 ;; Set it back to reduce long freezing during GC
 (add-hook 'after-init-hook
           (lambda ()
-           (setq gc-cons-threshold (* 1024 1024 100))))
-(setq esup-depth 0)
-(use-package esup
-  :ensure t)
+            (setq gc-cons-threshold (* 1024 1024 100))))
+
+
+(setq backup-directory-alist '(("" . "~/.emacs.d/backups")))
 
 
 (setq global-auto-revert-mode t)
@@ -79,9 +79,10 @@
 
 
 (use-package dashboard
+  :init
+  (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
   :config
   (dashboard-setup-startup-hook)
-  (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
   ;; (add-hook 'server-after-make-frame-hook
   ;; 	    (lambda ()
   ;; 	      (when (string= (buffer-name) "*dashboard*") (revert-buffer))))
@@ -148,6 +149,11 @@
   :init (marginalia-mode))
 
 
+(use-package nerd-icons-completion
+  :config
+  (nerd-icons-completion-mode))
+
+
 (use-package ethan-wspace
   :config
   ;; Turn off `mode-require-final-newline' since ethan-wspace
@@ -166,41 +172,69 @@
 
 ;; <---------------------- ORG ----------------------------->
 
-(use-package org-mode
-  :hook (org-mode . company-mode)
-  :custom (org-support-shift-select t)
+(use-package org
+  :mode (("\\.org$" . org-mode)) ;; Config doesn't run without this
+  :defer t
+  :hook
+  (org-mode . company-mode)
+  (org-mode . org-indent-mode)
+  :config
+  (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
+  :custom
+  (org-support-shift-select t)
+  (org-startup-with-inline-images t)
+  (org-babel-load-languages '((python . t) (emacs-lisp . t)))
+  (org-babel-python-command "~/Documents/Roam/.venv/bin/python") ;; virtual env
   :custom-face
   (org-level-1 ((t (:height 1.3))))
   (org-level-2 ((t (:height 1.2))))
-  (org-level-3 ((t (:height 1.1))))
-  :config (setq org-hide-block-startup t))
+  (org-level-3 ((t (:height 1.1)))))
+  ;(setq org-hide-block-startup t))
 
 
 (use-package org-roam
+  :defer t
   :init
-  (setq org-roam-v2-ack t) ;; Acknowledge V2 upgrade
-  (setq org-directory (concat (getenv "HOME") "/Documents/OrgRoam/"))
+  (setq org-roam-v2-ack t) ; Acknowledge V2 upgrade
   :custom
-  (org-roam-directory (file-truename org-directory))
+  (org-roam-directory (file-truename (concat (getenv "HOME") "/Documents/Roam/")))
+  (org-roam-capture-templates
+   `(("d" "default" plain "%?" :target (file+head "${slug}.org" "#+title: ${title}"):unnarrowed t)))
   :config
   (org-roam-setup)
-  :bind (("C-c n f" . org-roam-node-find)
-         ("C-c n r" . org-roam-node-random)
-         (:map org-mode-map
-               (("C-c n i" . org-roam-node-insert)
-                ("C-c n o" . org-id-get-create)
-                ("C-c n t" . org-roam-tag-add)
-                ("C-c n a" . org-roam-alias-add)
-                ("C-c n l" . org-roam-buffer-toggle)))))
+  :bind
+  (("C-c n f" . org-roam-node-find)
+   ("C-c n r" . org-roam-node-random)
+   ("C-c n i" . org-roam-node-insert)
+   ("C-c n o" . org-id-get-create)
+   ("C-c n t" . org-roam-tag-add)
+   ("C-c n a" . org-roam-alias-add)
+   ("C-c n l" . org-roam-buffer-toggle)))
 
 
-;; (use-package org-superstar
-;;   :hook (org-mode org-roam-mode)
-;;   :config (org-superstar-configure-like-org-bullets))
+(use-package org-modern
+  :defer t
+  :custom
+  ;(org-modern-hide-stars t) ; adds extra indentation
+  (org-modern-table nil)
+  (org-modern-list
+   '(;; (?- . "-")
+     (?* . "•")
+     (?+ . "‣")))
+  :hook
+  (org-mode . org-modern-mode)
+  (org-agenda-finalize . org-modern-agenda))
 
 
-(use-package org-fragtog
-  :hook (org-mode . org-fragtog-mode))
+(use-package org-modern-indent
+  :load-path "~/.emacs.d/org-modern-indent"
+  :defer t
+  :config ; add late to hook
+  (add-hook 'org-mode-hook #'org-modern-indent-mode 90))
+
+
+;; (use-package org-fragtog
+;;   :hook (org-mode . org-fragtog-mode))
 
 ;; <----------------------- END ORG ------------------------->
 
@@ -215,10 +249,11 @@
   (treemacs-width 20)
   (treemacs-hide-gitignored-files-mode t)
   :config
-  (require 'treemacs-all-the-icons)
-  (treemacs-load-theme "all-the-icons"))
+  (require 'treemacs-nerd-icons)
+  (treemacs-load-theme "nerd-icons"))
 
 (use-package lsp-mode
+  :defer t
   :hook
   ((c-mode          ; clangd
     c++-mode         ; clangd
@@ -283,12 +318,9 @@
 
 
 ;;;;********************** Python 🐍 *************************
-;; (use-package python-mode
-;;   :defer t
-;;   :hook
-;;   (pyvenv-mode company-mode)
-;;   :custom
-;;   (python-indent-offset 2))
+(use-package python
+  :custom
+  (python-indent-offset 2))
 
 ;; (use-package lsp-pyright
 ;;   :defer t

@@ -19,4 +19,5 @@ transient
 package-quickstart.elc
 package-quickstart.el
 elisp-autofmt-cache
+backups
 #*#

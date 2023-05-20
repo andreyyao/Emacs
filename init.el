@@ -13,6 +13,12 @@
             (setq gc-cons-threshold (* 1024 1024 100))))
 
 
+(defun my-set-margins ()
+  "Set margins in current buffer."
+  (setq left-margin-width 3)
+  (setq right-margin-width 3))
+
+
 (setq backup-directory-alist '(("" . "~/.emacs.d/backups")))
 
 
@@ -42,9 +48,15 @@
 
 
 (use-package doom-themes
+  :ensure t
   :config
-  (load-theme 'doom-one)
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-one t)
   (set-face-attribute 'highlight nil :foreground 'unspecified :background "#404040"))
+  ;; (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+  ;; (doom-themes-treemacs-config))
 
 
 (use-package doom-modeline
@@ -62,9 +74,9 @@
 
 (use-package nyan-mode
   :custom
-  (nyan-minimum-window-width 20)
+  (nyan-minimum-window-width 16)
   (nyan-animate-nyancat t)
-  (nyan-bar-length 16)
+  (nyan-bar-length 12)
   (nyan-wavy-trail t)
   :config
   (nyan-mode t)
@@ -83,9 +95,7 @@
   (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
   :config
   (dashboard-setup-startup-hook)
-  ;; (add-hook 'server-after-make-frame-hook
-  ;; 	    (lambda ()
-  ;; 	      (when (string= (buffer-name) "*dashboard*") (revert-buffer))))
+  (add-hook 'dashboard-mode-hook 'my-set-margins)
   (setq dashboard-navigator-buttons
 	`((("🌲" "Treemacs" "Open Treemacs" (lambda (&rest _) (treemacs)))
 	   ("🦄" "Roam" "Open Org Roam" (lambda (&rest _) (org-roam-node-find)))
@@ -93,16 +103,16 @@
   :custom-face
   (dashboard-navigator ((t nil)))
   :custom
-  (dashboard-startup-banner "~/.emacs.d/emacs_banner.txt")
+  (dashboard-startup-banner 2)
   (dashboard-display-icons-p t)
   (dashboard-icon-type 'nerd-icons)
   (dashboard-banner-logo-title nil)
   (dashboard-set-heading-icons t)
+  (dashboard-center-content t)
   (dashboard-recentf-show-base t)
   (dashboard-recentf-item-format "%s")
   (dashboard-set-file-icons t)
   (dashboard-set-navigator t)
-  (dashboard-center-content t)
   (dashboard-items '((recents  . 15) (projects . 5))))
 
 
@@ -118,13 +128,6 @@
 
 (use-package which-key
   :config (which-key-mode))
-
-
-(use-package all-the-icons-completion
-  :after (marginalia all-the-icons)
-  :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
-  :init
-  (all-the-icons-completion-mode))
 
 
 (use-package vertico
@@ -180,16 +183,21 @@
   (org-mode . org-indent-mode)
   :config
   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
+  (add-hook 'org-mode-hook 'my-set-margins)
+  (set-face-attribute 'org-level-1 nil :extend t :inherit 'outline-1)
   :custom
   (org-support-shift-select t)
   (org-startup-with-inline-images t)
-  (org-babel-load-languages '((python . t) (emacs-lisp . t)))
+  (org-fontify-whole-heading-line t)
+  (org-confirm-babel-evaluate nil)
+  (org-babel-load-languages '((python . t) (emacs-lisp . t) (C . t)))
   (org-babel-python-command "~/Documents/Roam/.venv/bin/python") ;; virtual env
   :custom-face
-  (org-level-1 ((t (:height 1.3))))
-  (org-level-2 ((t (:height 1.2))))
-  (org-level-3 ((t (:height 1.1)))))
-  ;(setq org-hide-block-startup t))
+  (org-block-begin-line
+   ((t
+     (:box (:line-width (2 . 4) :color "gray30" :style released-button)
+      :foreground "gray50" :background "gray20" :extend t :inherit (org-block))))))
+  ;(setq org-hide-block-startup t)))
 
 
 (use-package org-roam
@@ -199,7 +207,7 @@
   :custom
   (org-roam-directory (file-truename (concat (getenv "HOME") "/Documents/Roam/")))
   (org-roam-capture-templates
-   `(("d" "default" plain "%?" :target (file+head "${slug}.org" "#+title: ${title}"):unnarrowed t)))
+   `(("d" "default" plain "%?" :target (file+head "${slug}.org" "#+title: ${title}"):unnarrowed t))) ; Gets rid of timestamp in Roam file names
   :config
   (org-roam-setup)
   :bind
@@ -212,25 +220,25 @@
    ("C-c n l" . org-roam-buffer-toggle)))
 
 
-(use-package org-modern
-  :defer t
-  :custom
-  ;(org-modern-hide-stars t) ; adds extra indentation
-  (org-modern-table nil)
-  (org-modern-list
-   '(;; (?- . "-")
-     (?* . "•")
-     (?+ . "‣")))
-  :hook
-  (org-mode . org-modern-mode)
-  (org-agenda-finalize . org-modern-agenda))
+;; (use-package org-modern
+;;   :defer t
+;;   :custom
+;;   ;(org-modern-hide-stars t) ; adds extra indentation
+;;   (org-modern-table nil)
+;;   (org-modern-list
+;;    '(;; (?- . "-")
+;;      (?* . "•")
+;;      (?+ . "‣")))
+;;   :hook
+;;   (org-mode . org-modern-mode)
+;;   (org-agenda-finalize . org-modern-agenda))
 
 
-(use-package org-modern-indent
-  :load-path "~/.emacs.d/org-modern-indent"
-  :defer t
-  :config ; add late to hook
-  (add-hook 'org-mode-hook #'org-modern-indent-mode 90))
+;; (use-package org-modern-indent
+;;   :load-path "~/.emacs.d/org-modern-indent"
+;;   :defer t
+;;   :config ; add late to hook
+;;   (add-hook 'org-mode-hook #'org-modern-indent-mode 90))
 
 
 ;; (use-package org-fragtog
@@ -243,6 +251,7 @@
   :hook
   (prog-mode . display-line-numbers-mode))
 
+
 (use-package treemacs
   :defer t
   :custom
@@ -251,6 +260,7 @@
   :config
   (require 'treemacs-nerd-icons)
   (treemacs-load-theme "nerd-icons"))
+
 
 (use-package lsp-mode
   :defer t
@@ -300,7 +310,7 @@
 
 
 (use-package flycheck
-  :defer
+  :defer t
   :custom
   (flycheck-check-syntax-automatically '(save new-line))
   (flycheck-deferred-syntax-check nil)
@@ -392,10 +402,6 @@
 
 ;;;;*********************** Coq 🐓 ***************************
 (use-package proof-general
-  :after all-the-icons
-  :init
-  ;; all-the-icons thinks ".v" files are verilog.
-  (add-to-list 'all-the-icons-extension-icon-alist '("v" all-the-icons-fileicon "coq" :height 1.0 :v-adjust -0.2 :face all-the-icons-yellow))
   :defer t
   :custom
   (proof-splash-enable nil))

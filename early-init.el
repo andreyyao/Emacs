@@ -2,3 +2,5 @@
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 (fringe-mode '(0 . 0))
+(setq frame-inhibit-implied-resize t)
+(add-to-list 'default-frame-alist '(background-color . "#282c34"))

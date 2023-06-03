@@ -1,9 +1,12 @@
 (require 'package)
-;; (setq package-quickstart t)
 (setq custom-file (concat user-emacs-directory "custom.el"))
 (load custom-file)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-(package-initialize)
+
+
+(use-package esup
+  :init (setq esup-depth 0))
+
 
 ;; Minimize garbage collection during startup
 (setq gc-cons-threshold most-positive-fixnum)
@@ -50,9 +53,6 @@
 (use-package doom-themes
   :ensure t
   :config
-  ;; Global settings (defaults)
-  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-        doom-themes-enable-italic t) ; if nil, italics is universally disabled
   (load-theme 'doom-one t)
   (set-face-attribute 'highlight nil :foreground 'unspecified :background "#404040"))
   ;; (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
@@ -92,7 +92,8 @@
 
 (use-package dashboard
   :init
-  (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
+  (if (daemonp)
+      (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*"))))
   :config
   (dashboard-setup-startup-hook)
   (add-hook 'dashboard-mode-hook 'my-set-margins)
@@ -113,7 +114,7 @@
   (dashboard-recentf-item-format "%s")
   (dashboard-set-file-icons t)
   (dashboard-set-navigator t)
-  (dashboard-items '((recents  . 15) (projects . 5))))
+  (dashboard-items '((agenda . 5) (recents  . 10) (projects . 5))))
 
 
 (use-package recentf
@@ -152,6 +153,11 @@
   :init (marginalia-mode))
 
 
+(use-package nerd-icons-dired
+  :hook
+  (dired-mode . nerd-icons-dired-mode))
+
+
 (use-package nerd-icons-completion
   :config
   (nerd-icons-completion-mode))
@@ -182,21 +188,26 @@
   (org-mode . company-mode)
   (org-mode . org-indent-mode)
   :config
-  (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
   (add-hook 'org-mode-hook 'my-set-margins)
-  (set-face-attribute 'org-level-1 nil :extend t :inherit 'outline-1)
+  (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
   :custom
   (org-support-shift-select t)
   (org-startup-with-inline-images t)
   (org-fontify-whole-heading-line t)
   (org-confirm-babel-evaluate nil)
-  (org-babel-load-languages '((python . t) (emacs-lisp . t) (C . t)))
+  (org-babel-load-languages '((python . t) (emacs-lisp . t) (C . t) (ocaml . t) (shell . t) (R . t)))
   (org-babel-python-command "~/Documents/Roam/.venv/bin/python") ;; virtual env
   :custom-face
+  (org-level-1 ((t (:inherit outline-1 :height 2.0))))
+  (org-level-2 ((t (:inherit outline-2 :height 1.6))))
+  (org-level-3 ((t (:inherit outline-2 :height 1.3))))
+  (org-level-4 ((t (:inherit outline-2 :height 1.2))))
+  (org-level-5 ((t (:inherit outline-2 :height 1.1))))
   (org-block-begin-line
    ((t
-     (:box (:line-width (2 . 4) :color "gray30" :style released-button)
-      :foreground "gray50" :background "gray20" :extend t :inherit (org-block))))))
+     (:box (:line-width (2 . 4) :color "gray20" :style released-button)
+      :foreground "gray50" :background "gray25" :extend t :inherit (org-block))))))
   ;(setq org-hide-block-startup t)))
 
 
@@ -262,6 +273,13 @@
   (treemacs-load-theme "nerd-icons"))
 
 
+(use-package lsp-treemacs
+  :defer t
+  :after (lsp treemacs)
+  :config
+  (treemacs-load-theme "nerd-icons"))
+
+
 (use-package lsp-mode
   :defer t
   :hook
@@ -305,8 +323,8 @@
   :hook (latex-mode . yas-minor-mode))
 
 
-(use-package lsp-treemacs
-  :after (lsp-mode treemacs))
+;; (use-package lsp-treemacs
+;;   :after (lsp-mode treemacs))
 
 
 (use-package flycheck
@@ -329,6 +347,7 @@
 
 ;;;;********************** Python 🐍 *************************
 (use-package python
+  :defer t
   :custom
   (python-indent-offset 2))
 
@@ -356,8 +375,8 @@
 (use-package tuareg
   :defer t
   :config
-  (with-eval-after-load 'company
-    (add-to-list 'company-backends 'merlin-company-backend))
+  ;; (with-eval-after-load 'company
+  ;;   (add-to-list 'company-backends 'merlin-company-backend))
   (with-eval-after-load 'lsp-mode
     (ocamllsp-setup))
   (lambda ()
@@ -378,8 +397,7 @@
                     "lsl" "lsr" "asr")
                   ac-ignores)))
   :hook
-  (tuareg-mode . lsp)
-  (tuareg-mode . merlin-mode))
+  (tuareg-mode . lsp));  (tuareg-mode . merlin-mode))
 
 
 ;;;;************************ LaTeX ***************************

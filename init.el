@@ -55,8 +55,6 @@
   :config
   (load-theme 'doom-one t)
   (set-face-attribute 'highlight nil :foreground 'unspecified :background "#404040"))
-  ;; (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
-  ;; (doom-themes-treemacs-config))
 
 
 (use-package doom-modeline
@@ -104,7 +102,7 @@
   :custom-face
   (dashboard-navigator ((t nil)))
   :custom
-  (dashboard-startup-banner 2)
+  (dashboard-startup-banner ".emacs.d/banner.txt")
   (dashboard-display-icons-p t)
   (dashboard-icon-type 'nerd-icons)
   (dashboard-banner-logo-title nil)
@@ -123,8 +121,7 @@
   (recentf-max-menu-items 20)
   (recentf-exclude '("*.aux" "*.log" "*.bcf" "*.org" "*.run.xml" "*~"))
   :config
-  (recentf-mode 1)
-  (run-at-time nil (* 5 60) 'recentf-save-list))
+  (recentf-mode 1))
 
 
 (use-package which-key
@@ -273,14 +270,10 @@
   (treemacs-load-theme "nerd-icons"))
 
 
-(use-package lsp-treemacs
-  :defer t
-  :after (lsp treemacs)
-  :config
-  (treemacs-load-theme "nerd-icons"))
+(add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-at-point-mode t)
 
 
-(use-package lsp-mode
+(use-package eglot
   :defer t
   :hook
   ((c-mode          ; clangd
@@ -290,53 +283,77 @@
     rustic-mode     ; rust-analyzer
     tuareg-mode     ; ocaml-lsp-server
     haskell-mode)   ; haskell-language-server
-   . lsp-deferred)
+   . eglot-ensure)
   :custom
-  (read-process-output-max (* 1024 1024)) ; 1MB
-  (gc-cons-threshold 100000000) ; lsp-mode speedup
-  (lsp-diagnostics-provider :flycheck)
-  (lsp-enable-imenu nil)
-  (lsp-enable-on-type-formatting nil)
-  (lsp-enable-snippet nil)
-  (lsp-enable-symbol-highlighting t)
-  (lsp-headerline-breadcrumb-segments '(project file symbols))
-  (lsp-idle-delay 0.5)
-  (lsp-lens-enable nil)
-  (lsp-log-io nil)
-  (lsp-modeline-code-actions-enable nil)
-  (lsp-modeline-diagnostics-enable nil)
-  (lsp-semantic-tokens-enable nil)
-  (lsp-signature-auto-activate nil)
-  (lsp-signature-render-documentation nil)
-  (lsp-ui-doc-enable t)
-  (lsp-ui-doc-include-signature t)
-  (lsp-ui-sideline-enable nil)
-  :commands lsp)
+  (eglot-ignored-server-capabilities :inlayHintProvider))
 
 
-(use-package lsp-ui
-  :hook (lsp-mode . lsp-ui-mode)
-  :commands lsp-ui-mode)
+(use-package eldoc-box
+  :custom
+  (eldoc-box-max-pixel-width 1500)
+  (eldoc-box-max-pixel-height 1000))
+
+
+;; (use-package lsp-treemacs
+;;   :defer t
+;;   :after (lsp treemacs)
+;;   :config
+;;   (treemacs-load-theme "nerd-icons"))
+
+
+;; (use-package lsp-mode
+;;   :defer t
+;;   :hook
+;;   ((c-mode          ; clangd
+;;     c++-mode         ; clangd
+;;     typescript-mode ; ts-ls (tsserver wrapper)
+;;     python-mode     ; pyright
+;;     rustic-mode     ; rust-analyzer
+;;     tuareg-mode     ; ocaml-lsp-server
+;;     haskell-mode)   ; haskell-language-server
+;;    . lsp-deferred)
+;;   :custom
+;;   (read-process-output-max (* 1024 1024)) ; 1MB
+;;   (gc-cons-threshold 100000000) ; lsp-mode speedup
+;;   (lsp-diagnostics-provider :flymake)
+;;   (lsp-enable-imenu nil)
+;;   (lsp-enable-on-type-formatting nil)
+;;   (lsp-enable-snippet nil)
+;;   (lsp-enable-symbol-highlighting t)
+;;   (lsp-headerline-breadcrumb-segments '(project file symbols))
+;;   (lsp-idle-delay 0.5)
+;;   (lsp-lens-enable nil)
+;;   (lsp-log-io nil)
+;;   (lsp-modeline-code-actions-enable nil)
+;;   (lsp-modeline-diagnostics-enable nil)
+;;   (lsp-semantic-tokens-enable nil)
+;;   (lsp-signature-auto-activate nil)
+;;   (lsp-signature-render-documentation nil)
+;;   (lsp-ui-doc-enable t)
+;;   (lsp-ui-doc-include-signature t)
+;;   (lsp-ui-sideline-enable nil)
+;;   :commands lsp)
+
+
+;; (use-package lsp-ui
+;;   :hook (lsp-mode . lsp-ui-mode)
+;;   :commands lsp-ui-mode)
 
 
 (use-package yasnippet
   :hook (latex-mode . yas-minor-mode))
 
 
-;; (use-package lsp-treemacs
-;;   :after (lsp-mode treemacs))
-
-
-(use-package flycheck
-  :defer t
-  :custom
-  (flycheck-check-syntax-automatically '(save new-line))
-  (flycheck-deferred-syntax-check nil)
-  (flycheck-display-errors-delay 0.2)
-  (flycheck-display-errors-function nil)
-  (flycheck-highlighting-mode 'symbols)
-  (flycheck-indication-mode 'left-margin)
-  (flycheck-standard-error-navigation t))
+;; (use-package flycheck
+;;   :defer t
+;;   :custom
+;;   (flycheck-check-syntax-automatically '(save new-line))
+;;   (flycheck-deferred-syntax-check nil)
+;;   (flycheck-display-errors-delay 0.2)
+;;   (flycheck-display-errors-function nil)
+;;   (flycheck-highlighting-mode 'symbols)
+;;   (flycheck-indication-mode 'left-margin)
+;;   (flycheck-standard-error-navigation t))
 
 
 (use-package company
@@ -377,7 +394,7 @@
   :config
   ;; (with-eval-after-load 'company
   ;;   (add-to-list 'company-backends 'merlin-company-backend))
-  (with-eval-after-load 'lsp-mode
+  (with-eval-after-load 'eglot-mode
     (ocamllsp-setup))
   (lambda ()
     (make-local-variable 'ac-ignores)
@@ -397,7 +414,7 @@
                     "lsl" "lsr" "asr")
                   ac-ignores)))
   :hook
-  (tuareg-mode . lsp));  (tuareg-mode . merlin-mode))
+  (tuareg-mode . eglot-ensure));  (tuareg-mode . merlin-mode))
 
 
 ;;;;************************ LaTeX ***************************
@@ -406,7 +423,7 @@
   (LaTeX-mode . display-line-numbers-mode)
   (LaTeX-mode . prettify-symbols-mode)
   (LaTeX-mode . LaTeX-math-mode)
-  (LaTeX-mode . lsp)
+  (LaTeX-mode . eglot-ensure)
   :custom
   (LaTeX-electric-left-right-brace t)
   (TeX-view-program-selection '((output-pdf "Okular")))
@@ -433,7 +450,8 @@
 
 ;;;;********************** Rust 🦀 ***************************
 (use-package rustic
-  :defer t)
+  :defer t
+  :custom (rustic-lsp-client 'eglot))
 
 
 ;;;;************************ C++ *****************************

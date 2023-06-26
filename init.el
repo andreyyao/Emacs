@@ -28,6 +28,7 @@
 (setq global-auto-revert-mode t)
 (setq global-eldoc-mode nil)
 (setq indent-tabs-mode nil)
+(setq line-number-mode nil)
 (cua-mode t)
 
 
@@ -53,8 +54,8 @@
 (use-package doom-themes
   :ensure t
   :config
-  (load-theme 'doom-one t)
-  (set-face-attribute 'highlight nil :foreground 'unspecified :background "#404040"))
+  (load-theme 'doom-monokai-pro t)
+  (set-face-attribute 'highlight nil :foreground 'unspecified :background 'unspecified :underline '(:color foreground-color :style line)))
 
 
 (use-package doom-modeline
@@ -110,9 +111,10 @@
   (dashboard-center-content t)
   (dashboard-recentf-show-base t)
   (dashboard-recentf-item-format "%s")
+  (dashboard-projects-backend 'project-el)
   (dashboard-set-file-icons t)
   (dashboard-set-navigator t)
-  (dashboard-items '((agenda . 5) (recents  . 10) (projects . 5))))
+  (dashboard-items '((recents  . 10) (projects . 5))))
 
 
 (use-package recentf
@@ -193,18 +195,19 @@
   (org-startup-with-inline-images t)
   (org-fontify-whole-heading-line t)
   (org-confirm-babel-evaluate nil)
+  (org-cite-global-bibliography '("~/Documents/Roam/zotero.bib"))
   (org-babel-load-languages '((python . t) (emacs-lisp . t) (C . t) (ocaml . t) (shell . t) (R . t)))
   (org-babel-python-command "~/Documents/Roam/.venv/bin/python") ;; virtual env
   :custom-face
-  (org-level-1 ((t (:inherit outline-1 :height 2.0))))
-  (org-level-2 ((t (:inherit outline-2 :height 1.6))))
+  (org-level-1 ((t (:inherit outline-1 :height 1.5))))
+  (org-level-2 ((t (:inherit outline-2 :height 1.4))))
   (org-level-3 ((t (:inherit outline-2 :height 1.3))))
   (org-level-4 ((t (:inherit outline-2 :height 1.2))))
   (org-level-5 ((t (:inherit outline-2 :height 1.1))))
   (org-block-begin-line
    ((t
-     (:box (:line-width (2 . 4) :color "gray20" :style released-button)
-      :foreground "gray50" :background "gray25" :extend t :inherit (org-block))))))
+     (:box (:line-width (2 . 4) :color "brown20" :style released-button)
+      :foreground "gray50" :background "brown25" :extend t :inherit (org-block))))))
   ;(setq org-hide-block-startup t)))
 
 
@@ -215,7 +218,7 @@
   :custom
   (org-roam-directory (file-truename (concat (getenv "HOME") "/Documents/Roam/")))
   (org-roam-capture-templates
-   `(("d" "default" plain "%?" :target (file+head "${slug}.org" "#+title: ${title}"):unnarrowed t))) ; Gets rid of timestamp in Roam file names
+   `(("d" "default" plain "%?" :target (file+head "${slug}.org" "#+title: ${title}") :unnarrowed t))) ; Gets rid of timestamp in Roam file names
   :config
   (org-roam-setup)
   :bind
@@ -285,7 +288,11 @@
     haskell-mode)   ; haskell-language-server
    . eglot-ensure)
   :custom
-  (eglot-ignored-server-capabilities :inlayHintProvider))
+  (eglot-ignored-server-capabilities '(:inlayHintProvider))
+  :config
+  (add-to-list 'eglot-server-programs
+	       '((tex-mode context-mode texinfo-mode bibtex-mode) . ("texlab")))
+  (add-hook 'eglot-managed-mode-hook #'company-mode t))
 
 
 (use-package eldoc-box
@@ -344,6 +351,10 @@
   :hook (latex-mode . yas-minor-mode))
 
 
+(use-package flymake
+  :config
+  (define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
+  (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error))
 ;; (use-package flycheck
 ;;   :defer t
 ;;   :custom
@@ -359,7 +370,7 @@
 (use-package company
   :custom
   (company-minimum-prefix-length 2)
-  (company-idle-delay 0.1))
+  (company-idle-delay 0.2))
 
 
 ;;;;********************** Python 🐍 *************************
@@ -425,12 +436,11 @@
   (LaTeX-mode . LaTeX-math-mode)
   (LaTeX-mode . eglot-ensure)
   :custom
-  (LaTeX-electric-left-right-brace t)
   (TeX-view-program-selection '((output-pdf "Okular")))
   (TeX-source-correlate-start-server t)
+  (TeX-electric-math (cons "$" "$"))
   (TeX-save-query nil)
   :config
-  (setq TeX-electric-math (cons "$" "$"))
   (add-hook 'TeX-after-compilation-finished-hook
             #'TeX-revert-document-buffer))
 
@@ -455,12 +465,12 @@
 
 
 ;;;;************************ C++ *****************************
-(use-package c++-mode
+(use-package c++
   :defer t)
 
 
 ;;;;********************** Type script ***********************
-(use-package typescript-mode
+(use-package typescript
   :defer t)
 
 
@@ -471,6 +481,6 @@
 
 
 ;;;;************************* ELisp **************************
-(use-package emacs-lisp-mode
+(use-package emacs-lisp
   :hook
   (emacs-lisp-mode . company-mode))

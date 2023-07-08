@@ -55,7 +55,8 @@
   :ensure t
   :config
   (load-theme 'doom-monokai-pro t)
-  (set-face-attribute 'highlight nil :foreground 'unspecified :background 'unspecified :underline '(:color foreground-color :style line)))
+  (set-face-attribute 'highlight nil :distant-foreground 'unspecified :foreground 'unspecified :background 'unspecified :underline '(:color foreground-color :style line))
+  (set-face-attribute 'link nil :foreground 'unspecified))
 
 
 (use-package doom-modeline
@@ -186,24 +187,29 @@
   :hook
   (org-mode . company-mode)
   (org-mode . org-indent-mode)
+  (org-mode . org-fragtog-mode)
   :config
   (add-hook 'org-mode-hook 'my-set-margins)
   (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
+  (setq org-startup-truncated nil)
   :custom
   (org-support-shift-select t)
   (org-startup-with-inline-images t)
+  ;; (org-startup-with-latex-preview t)
   (org-fontify-whole-heading-line t)
   (org-confirm-babel-evaluate nil)
   (org-cite-global-bibliography '("~/Documents/Roam/zotero.bib"))
   (org-babel-load-languages '((python . t) (emacs-lisp . t) (C . t) (ocaml . t) (shell . t) (R . t)))
   (org-babel-python-command "~/Documents/Roam/.venv/bin/python") ;; virtual env
   :custom-face
-  (org-level-1 ((t (:inherit outline-1 :height 1.5))))
-  (org-level-2 ((t (:inherit outline-2 :height 1.4))))
-  (org-level-3 ((t (:inherit outline-2 :height 1.3))))
-  (org-level-4 ((t (:inherit outline-2 :height 1.2))))
+  (org-level-1 ((t (:inherit outline-1 :height 1.3))))
+  (org-level-2 ((t (:inherit outline-2 :height 1.2))))
+  (org-level-3 ((t (:inherit outline-2 :height 1.1))))
+  (org-level-4 ((t (:inherit outline-2 :height 1.1))))
   (org-level-5 ((t (:inherit outline-2 :height 1.1))))
+  (org-link
+   ((t (:foreground unspecified :inherit (link)))))
   (org-block-begin-line
    ((t
      (:box (:line-width (2 . 4) :color "brown20" :style released-button)

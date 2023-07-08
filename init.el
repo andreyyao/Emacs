@@ -4,11 +4,7 @@
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 
 
-(use-package esup
-  :init (setq esup-depth 0))
-
-
-;; Minimize garbage collection during startup
+;; Minimize garbage collection during startup to reduce startup time
 (setq gc-cons-threshold most-positive-fixnum)
 ;; Set it back to reduce long freezing during GC
 (add-hook 'after-init-hook
@@ -237,29 +233,9 @@
    ("C-c n l" . org-roam-buffer-toggle)))
 
 
-;; (use-package org-modern
-;;   :defer t
-;;   :custom
-;;   ;(org-modern-hide-stars t) ; adds extra indentation
-;;   (org-modern-table nil)
-;;   (org-modern-list
-;;    '(;; (?- . "-")
-;;      (?* . "•")
-;;      (?+ . "‣")))
-;;   :hook
-;;   (org-mode . org-modern-mode)
-;;   (org-agenda-finalize . org-modern-agenda))
-
-
-;; (use-package org-modern-indent
-;;   :load-path "~/.emacs.d/org-modern-indent"
-;;   :defer t
-;;   :config ; add late to hook
-;;   (add-hook 'org-mode-hook #'org-modern-indent-mode 90))
-
-
-;; (use-package org-fragtog
-;;   :hook (org-mode . org-fragtog-mode))
+(use-package org-fragtog
+  :defer t
+  :ensure t)
 
 ;; <----------------------- END ORG ------------------------->
 
@@ -361,16 +337,6 @@
   :config
   (define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
   (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error))
-;; (use-package flycheck
-;;   :defer t
-;;   :custom
-;;   (flycheck-check-syntax-automatically '(save new-line))
-;;   (flycheck-deferred-syntax-check nil)
-;;   (flycheck-display-errors-delay 0.2)
-;;   (flycheck-display-errors-function nil)
-;;   (flycheck-highlighting-mode 'symbols)
-;;   (flycheck-indication-mode 'left-margin)
-;;   (flycheck-standard-error-navigation t))
 
 
 (use-package company

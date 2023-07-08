@@ -22,3 +22,6 @@ elisp-autofmt-cache
 backups
 #*#
 games
+.org-id-locations
+projects
+bookmarks

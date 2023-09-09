@@ -12,19 +12,15 @@
             (setq gc-cons-threshold (* 1024 1024 100))))
 
 
-(defun my-set-margins ()
-  "Set margins in current buffer."
-  (setq left-margin-width 3)
-  (setq right-margin-width 3))
-
-
 (setq backup-directory-alist '(("" . "~/.emacs.d/backups")))
 
 
+(setq inhibit-startup-echo-area-message "andrey")
 (setq global-auto-revert-mode t)
 (setq global-eldoc-mode nil)
 (setq indent-tabs-mode nil)
 (setq line-number-mode nil)
+(pixel-scroll-precision-mode)
 (cua-mode t)
 
 
@@ -39,12 +35,12 @@
   (find-file user-init-file))
 
 
-;; Making sure that emacs inherits same environment variable as shell
-(use-package exec-path-from-shell
-  :config
-  (setq exec-path-from-shell-variables '("PATH"))
-  (setenv "SHELL" "/usr/share/zsh")
-  (exec-path-from-shell-initialize))
+;; ;; Making sure that emacs inherits same environment variable as shell
+;; (use-package exec-path-from-shell
+;;   :config
+;;   (setq exec-path-from-shell-variables '("PATH"))
+;;   (setenv "SHELL" "/usr/share/zsh")
+;;   (exec-path-from-shell-initialize))
 
 
 (use-package doom-themes
@@ -52,7 +48,9 @@
   :config
   (load-theme 'doom-monokai-pro t)
   (set-face-attribute 'highlight nil :distant-foreground 'unspecified :foreground 'unspecified :background 'unspecified :underline '(:color foreground-color :style line))
-  (set-face-attribute 'link nil :foreground 'unspecified))
+  (set-face-attribute 'link nil :foreground 'unspecified)
+  (set-face-attribute 'font-lock-comment-face nil :foreground "#999999")
+  (set-face-attribute 'line-number nil :foreground "#606060"))
 
 
 (use-package doom-modeline
@@ -92,7 +90,6 @@
       (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*"))))
   :config
   (dashboard-setup-startup-hook)
-  (add-hook 'dashboard-mode-hook 'my-set-margins)
   (setq dashboard-navigator-buttons
 	`((("🌲" "Treemacs" "Open Treemacs" (lambda (&rest _) (treemacs)))
 	   ("🦄" "Roam" "Open Org Roam" (lambda (&rest _) (org-roam-node-find)))
@@ -100,7 +97,7 @@
   :custom-face
   (dashboard-navigator ((t nil)))
   :custom
-  (dashboard-startup-banner ".emacs.d/banner.txt")
+  (dashboard-startup-banner "~/.emacs.d/banner.txt")
   (dashboard-display-icons-p t)
   (dashboard-icon-type 'nerd-icons)
   (dashboard-banner-logo-title nil)
@@ -111,7 +108,7 @@
   (dashboard-projects-backend 'project-el)
   (dashboard-set-file-icons t)
   (dashboard-set-navigator t)
-  (dashboard-items '((recents  . 10) (projects . 5))))
+  (dashboard-items '((recents  . 8) (projects . 4))))
 
 
 (use-package recentf
@@ -129,7 +126,7 @@
 
 (use-package vertico
   :init (vertico-mode)
-  :custom (vertico-count 4))
+  :custom (vertico-count 5))
 
 
 (use-package orderless
@@ -177,6 +174,13 @@
 
 ;; <---------------------- ORG ----------------------------->
 
+;; Used to set org-mode buffer margins
+(defun org-set-margins ()
+  "Set margins in current buffer."
+  (setq left-margin-width 3)
+  (setq right-margin-width 3))
+
+
 (use-package org
   :mode (("\\.org$" . org-mode)) ;; Config doesn't run without this
   :defer t
@@ -185,19 +189,35 @@
   (org-mode . org-indent-mode)
   (org-mode . org-fragtog-mode)
   :config
-  (add-hook 'org-mode-hook 'my-set-margins)
+  (add-hook 'org-mode-hook 'org-set-margins)
   (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
   (setq org-startup-truncated nil)
+  ;; From the package ov
+  (defun ov-at (&optional point)
+    "Get an overlay at POINT.
+  POINT defaults to the current `point'."
+    (or point (setq point (point)))
+    (car (overlays-at point)))
+  ;; https://www.reddit.com/r/emacs/comments/169keg7/comment/jzierha/?utm_source=share&utm_medium=web2x&context=3
+  (defun org-justify-fragment-overlay (beg end image &optional imagetype)
+    "Only equations at the beginning and also end of a line are justified."
+    (if
+     (and (= beg (line-beginning-position)) (= end (line-end-position)))
+     (let* ((ov (ov-at))
+	    (disp (overlay-get ov 'display)))
+       (overlay-put ov 'line-prefix `(space :align-to (- center (0.5 . ,disp)))))))
+  (advice-add 'org--make-preview-overlay :after 'org-justify-fragment-overlay)
   :custom
   (org-support-shift-select t)
   (org-startup-with-inline-images t)
-  ;; (org-startup-with-latex-preview t)
+  (org-startup-with-latex-preview t)
   (org-fontify-whole-heading-line t)
   (org-confirm-babel-evaluate nil)
   (org-cite-global-bibliography '("~/Documents/Roam/zotero.bib"))
   (org-babel-load-languages '((python . t) (emacs-lisp . t) (C . t) (ocaml . t) (shell . t) (R . t)))
   (org-babel-python-command "~/Documents/Roam/.venv/bin/python") ;; virtual env
+  (org-latex-packages-alist '(("AUTO" "mathpartir" t ("pdflatex"))))
   :custom-face
   (org-level-1 ((t (:inherit outline-1 :height 1.3))))
   (org-level-2 ((t (:inherit outline-2 :height 1.2))))
@@ -208,10 +228,9 @@
    ((t (:foreground unspecified :inherit (link)))))
   (org-block-begin-line
    ((t
-     (:box (:line-width (2 . 4) :color "brown20" :style released-button)
-      :foreground "gray50" :background "brown25" :extend t :inherit (org-block))))))
-  ;(setq org-hide-block-startup t)))
-
+     (:box (:line-width (2 . 4) :color "brown" :style released-button)
+      :foreground "gray50" :background "brown" :extend t :inherit (org-block))))))
+;; (setq org-hide-block-startup t)))
 
 (use-package org-roam
   :defer t
@@ -220,7 +239,7 @@
   :custom
   (org-roam-directory (file-truename (concat (getenv "HOME") "/Documents/Roam/")))
   (org-roam-capture-templates
-   `(("d" "default" plain "%?" :target (file+head "${slug}.org" "#+title: ${title}") :unnarrowed t))) ; Gets rid of timestamp in Roam file names
+   `(("d" "default" plain "%?" :target (file+head "${slug}.org" "#+TAGS:\n#+TITLE: ${title}") :unnarrowed t))) ; Gets rid of timestamp in Roam file names
   :config
   (org-roam-setup)
   :bind
@@ -231,6 +250,31 @@
    ("C-c n t" . org-roam-tag-add)
    ("C-c n a" . org-roam-alias-add)
    ("C-c n l" . org-roam-buffer-toggle)))
+
+
+(use-package citar
+  :defer t
+  :after org
+  :bind
+  (("C-c r e" . #'citar-open-entry)
+   ("C-c r l" . #'citar-open-links)
+   ("C-c r n" . #'citar-open-notes)
+   ("C-c r i" . #'citar-insert-citation))
+  :custom
+  (citar-bibliography org-cite-global-bibliography)
+  (org-cite-insert-processor 'citar)
+  (org-cite-activate-processor 'citar)
+  (org-cite-follow-processor 'citar))
+
+
+(use-package citar-org-roam
+  :defer t
+  :after (citar org-roam)
+  :custom
+  (citar-org-roam-mode t)
+  ;; NOTE: This was the original default subdir,prior to
+  ;; https://github.com/emacs-citar/citar-org-roam/issues/36
+  (citar-org-roam-subdir "references"))
 
 
 (use-package org-fragtog
@@ -262,7 +306,7 @@
   :defer t
   :hook
   ((c-mode          ; clangd
-    c++-mode         ; clangd
+    c++-mode        ; clangd
     typescript-mode ; ts-ls (tsserver wrapper)
     python-mode     ; pyright
     rustic-mode     ; rust-analyzer
@@ -281,52 +325,6 @@
   :custom
   (eldoc-box-max-pixel-width 1500)
   (eldoc-box-max-pixel-height 1000))
-
-
-;; (use-package lsp-treemacs
-;;   :defer t
-;;   :after (lsp treemacs)
-;;   :config
-;;   (treemacs-load-theme "nerd-icons"))
-
-
-;; (use-package lsp-mode
-;;   :defer t
-;;   :hook
-;;   ((c-mode          ; clangd
-;;     c++-mode         ; clangd
-;;     typescript-mode ; ts-ls (tsserver wrapper)
-;;     python-mode     ; pyright
-;;     rustic-mode     ; rust-analyzer
-;;     tuareg-mode     ; ocaml-lsp-server
-;;     haskell-mode)   ; haskell-language-server
-;;    . lsp-deferred)
-;;   :custom
-;;   (read-process-output-max (* 1024 1024)) ; 1MB
-;;   (gc-cons-threshold 100000000) ; lsp-mode speedup
-;;   (lsp-diagnostics-provider :flymake)
-;;   (lsp-enable-imenu nil)
-;;   (lsp-enable-on-type-formatting nil)
-;;   (lsp-enable-snippet nil)
-;;   (lsp-enable-symbol-highlighting t)
-;;   (lsp-headerline-breadcrumb-segments '(project file symbols))
-;;   (lsp-idle-delay 0.5)
-;;   (lsp-lens-enable nil)
-;;   (lsp-log-io nil)
-;;   (lsp-modeline-code-actions-enable nil)
-;;   (lsp-modeline-diagnostics-enable nil)
-;;   (lsp-semantic-tokens-enable nil)
-;;   (lsp-signature-auto-activate nil)
-;;   (lsp-signature-render-documentation nil)
-;;   (lsp-ui-doc-enable t)
-;;   (lsp-ui-doc-include-signature t)
-;;   (lsp-ui-sideline-enable nil)
-;;   :commands lsp)
-
-
-;; (use-package lsp-ui
-;;   :hook (lsp-mode . lsp-ui-mode)
-;;   :commands lsp-ui-mode)
 
 
 (use-package yasnippet
@@ -350,16 +348,6 @@
   :defer t
   :custom
   (python-indent-offset 2))
-
-;; (use-package lsp-pyright
-;;   :defer t
-;;   :hook
-;;   (python-mode . (lambda ()
-;;                           (require 'lsp-pyright)
-;;                           (lsp)))
-;;   :config
-;;   (with-eval-after-load "lsp-mode"
-;;     (add-to-list 'lsp-disabled-clients 'pyls)))
 
 
 ;;;;********************** OCaml 🐪 **************************

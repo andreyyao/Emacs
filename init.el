@@ -185,6 +185,7 @@
   :mode (("\\.org$" . org-mode)) ;; Config doesn't run without this
   :defer t
   :hook
+  (org-mode . flyspell-mode)
   (org-mode . company-mode)
   (org-mode . org-indent-mode)
   (org-mode . org-fragtog-mode)
@@ -299,7 +300,49 @@
   (treemacs-load-theme "nerd-icons"))
 
 
-(add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-at-point-mode t)
+(setq treesit-language-source-alist
+   '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+     (cmake "https://github.com/uyha/tree-sitter-cmake")
+     (css "https://github.com/tree-sitter/tree-sitter-css")
+     (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+     (haskell "https://github.com/tree-sitter/tree-sitter-haskell")
+     (go "https://github.com/tree-sitter/tree-sitter-go")
+     (html "https://github.com/tree-sitter/tree-sitter-html")
+     (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+     (json "https://github.com/tree-sitter/tree-sitter-json")
+     (make "https://github.com/alemuller/tree-sitter-make")
+     (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+     (python "https://github.com/tree-sitter/tree-sitter-python")
+     (rust "https://github.com/tree-sitter/tree-sitter-rust")
+     (toml "https://github.com/tree-sitter/tree-sitter-toml")
+     (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+     (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+     (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
+
+
+(setq major-mode-remap-alist
+ '((yaml-mode . yaml-ts-mode)
+   (bash-mode . bash-ts-mode)
+   (js2-mode . js-ts-mode)
+   (typescript-mode . typescript-ts-mode)
+   (json-mode . json-ts-mode)
+   (css-mode . css-ts-mode)
+   (python-mode . python-ts-mode)
+   (rustic-mode . rust-ts-mode)))
+
+
+(use-package treesit
+  :custom
+  (treesit-font-lock-level 4) ;; Highest level
+  (major-mode-remap-alist
+   '((yaml-mode . yaml-ts-mode)
+     (bash-mode . bash-ts-mode)
+     (js2-mode . js-ts-mode)
+     (typescript-mode . typescript-ts-mode)
+     (json-mode . json-ts-mode)
+     (css-mode . css-ts-mode)
+     (python-mode . python-ts-mode)
+     (rustic-mode . rust-ts-mode))))
 
 
 (use-package eglot
@@ -309,7 +352,7 @@
     c++-mode        ; clangd
     typescript-mode ; ts-ls (tsserver wrapper)
     python-mode     ; pyright
-    rustic-mode     ; rust-analyzer
+    rust-ts-mode    ; rust-analyzer
     tuareg-mode     ; ocaml-lsp-server
     haskell-mode)   ; haskell-language-server
    . eglot-ensure)
@@ -318,7 +361,8 @@
   :config
   (add-to-list 'eglot-server-programs
 	       '((tex-mode context-mode texinfo-mode bibtex-mode) . ("texlab")))
-  (add-hook 'eglot-managed-mode-hook #'company-mode t))
+  (add-hook 'eglot-managed-mode-hook #'company-mode t)
+  (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-at-point-mode t))
 
 
 (use-package eldoc-box
@@ -398,7 +442,7 @@
   :custom
   (TeX-view-program-selection '((output-pdf "Okular")))
   (TeX-source-correlate-start-server t)
-  (TeX-electric-math (cons "$" "$"))
+  ; (TeX-electric-math (cons "$" "$"))
   (TeX-save-query nil)
   :config
   (add-hook 'TeX-after-compilation-finished-hook
@@ -419,9 +463,9 @@
 
 
 ;;;;********************** Rust 🦀 ***************************
-(use-package rustic
+(use-package rust-ts
   :defer t
-  :custom (rustic-lsp-client 'eglot))
+  :hook (rust-ts-mode 'eglot))
 
 
 ;;;;************************ C++ *****************************

@@ -6,7 +6,7 @@
  '(custom-safe-themes t)
  '(inhibit-startup-screen t)
  '(package-selected-packages
-   '(xenops citar-org-roam citar rainbow-mode treemacs-nerd-icons eldoc-box yuck-mode doom-themes nerd-icons-dired gnuplot nerd-icons-completion org-modern elisp-autofmt rainbow-delimiters material-theme emacs-lisp-mode c++-mode latex yasnippet prog-mode org-mode doom-modeline nerd-icons dashboard orderless org-fragtog org-superstar org-roam-ui org-roam dap-mode flycheck-posframe haskell-mode vertico wc-mode caml tuareg auto-highlight-symbol marginalia nyan-mode ethan-wspace lsp-pyright typescript-mode which-key which-keyc markdown-preview-mode rustic modern-cpp-font-lock company-coq exec-path-from-shell merlin-company magit company-lsp auctex proof-general lsp-ocaml company pyvenv))
+   '(conda xenops citar-org-roam citar rainbow-mode treemacs-nerd-icons eldoc-box yuck-mode doom-themes nerd-icons-dired gnuplot nerd-icons-completion org-modern elisp-autofmt rainbow-delimiters material-theme emacs-lisp-mode c++-mode latex yasnippet prog-mode org-mode doom-modeline nerd-icons dashboard orderless org-fragtog org-superstar org-roam-ui org-roam dap-mode flycheck-posframe haskell-mode vertico wc-mode caml tuareg auto-highlight-symbol marginalia nyan-mode ethan-wspace lsp-pyright typescript-mode which-key which-keyc markdown-preview-mode rustic modern-cpp-font-lock company-coq exec-path-from-shell merlin-company magit company-lsp auctex proof-general lsp-ocaml company pyvenv))
  '(warning-suppress-log-types '((comp)))
  '(warning-suppress-types '((comp))))
 ;; custom-set-faces was added by Custom.

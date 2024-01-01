@@ -23,6 +23,8 @@
 (pixel-scroll-precision-mode)
 (cua-mode t)
 
+(setq esup-depth 0)
+
 
 (global-set-key (kbd "C-s") 'save-buffer)
 (global-set-key (kbd "C-f") 'isearch-forward)
@@ -35,22 +37,24 @@
   (find-file user-init-file))
 
 
-;; ;; Making sure that emacs inherits same environment variable as shell
-;; (use-package exec-path-from-shell
-;;   :config
-;;   (setq exec-path-from-shell-variables '("PATH"))
-;;   (setenv "SHELL" "/usr/share/zsh")
-;;   (exec-path-from-shell-initialize))
+;; Making sure that emacs inherits same environment variable as shell
+(use-package exec-path-from-shell
+  :config
+  (setq exec-path-from-shell-variables '("PATH"))
+  (setenv "SHELL" "/usr/share/zsh")
+  (exec-path-from-shell-initialize))
 
 
 (use-package doom-themes
   :ensure t
   :config
-  (load-theme 'doom-monokai-pro t)
-  (set-face-attribute 'highlight nil :distant-foreground 'unspecified :foreground 'unspecified :background 'unspecified :underline '(:color foreground-color :style line))
-  (set-face-attribute 'link nil :foreground 'unspecified)
-  (set-face-attribute 'font-lock-comment-face nil :foreground "#999999")
-  (set-face-attribute 'line-number nil :foreground "#606060"))
+  (add-hook
+   'emacs-startup-hook
+   (lambda ()
+     (load-theme 'doom-material-dark t)
+     (set-face-attribute 'highlight nil :distant-foreground 'unspecified :foreground 'unspecified :background 'unspecified :underline '(:color foreground-color :style line))
+     (set-face-attribute 'link nil :foreground 'unspecified)
+     (set-face-attribute 'font-lock-comment-face nil :foreground "#66AA77"))))
 
 
 (use-package doom-modeline
@@ -90,25 +94,20 @@
       (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*"))))
   :config
   (dashboard-setup-startup-hook)
-  (setq dashboard-navigator-buttons
-	`((("🌲" "Treemacs" "Open Treemacs" (lambda (&rest _) (treemacs)))
-	   ("🦄" "Roam" "Open Org Roam" (lambda (&rest _) (org-roam-node-find)))
-	   ("🔧" "init.el" "Settings" (lambda (&rest _) (open-init-file))))))
-  :custom-face
-  (dashboard-navigator ((t nil)))
+  (add-hook 'server-after-make-frame-hook 'revert-buffer)
   :custom
-  (dashboard-startup-banner "~/.emacs.d/banner.txt")
+  (dashboard-startup-banner "~/.emacs.d/xemacs.svg")
+  (dashboard-banner-logo-title nil)
   (dashboard-display-icons-p t)
   (dashboard-icon-type 'nerd-icons)
-  (dashboard-banner-logo-title nil)
   (dashboard-set-heading-icons t)
   (dashboard-center-content t)
   (dashboard-recentf-show-base t)
   (dashboard-recentf-item-format "%s")
   (dashboard-projects-backend 'project-el)
   (dashboard-set-file-icons t)
-  (dashboard-set-navigator t)
-  (dashboard-items '((recents  . 8) (projects . 4))))
+  (dashboard-set-navigator nil)
+  (dashboard-items '((recents  . 12) (projects . 3))))
 
 
 (use-package recentf
@@ -136,10 +135,10 @@
 
 ;; We follow a suggestion by company maintainer u/hvis:
 ;; https://www.reddit.com/r/emacs/comments/nichkl/comment/gz1jr3s/
-(defun company-completion-styles (capf-fn &rest args)
-  (let ((completion-styles '(basic partial-completion)))
-    (apply capf-fn args)))
-(advice-add 'company-capf :around #'company-completion-styles)
+;; (defun company-completion-styles (capf-fn &rest args)
+;;   (let ((completion-styles '(basic partial-completion)))
+;;     (apply capf-fn args)))
+;; (advice-add 'company-capf :around #'company-completion-styles)
 
 
 (use-package marginalia
@@ -180,10 +179,8 @@
   (setq left-margin-width 3)
   (setq right-margin-width 3))
 
-
 (use-package org
   :mode (("\\.org$" . org-mode)) ;; Config doesn't run without this
-  :defer t
   :hook
   (org-mode . flyspell-mode)
   (org-mode . company-mode)
@@ -218,7 +215,7 @@
   (org-cite-global-bibliography '("~/Documents/Roam/zotero.bib"))
   (org-babel-load-languages '((python . t) (emacs-lisp . t) (C . t) (ocaml . t) (shell . t) (R . t)))
   (org-babel-python-command "~/Documents/Roam/.venv/bin/python") ;; virtual env
-  (org-latex-packages-alist '(("AUTO" "mathpartir" t ("pdflatex"))))
+  (org-latex-packages-alist '(("AUTO" "mathpartir" t ("pdflatex"))("AUTO" "mathtools" t ("pdflatex"))))
   :custom-face
   (org-level-1 ((t (:inherit outline-1 :height 1.3))))
   (org-level-2 ((t (:inherit outline-2 :height 1.2))))
@@ -234,7 +231,6 @@
 ;; (setq org-hide-block-startup t)))
 
 (use-package org-roam
-  :defer t
   :init
   (setq org-roam-v2-ack t) ; Acknowledge V2 upgrade
   :custom
@@ -242,7 +238,7 @@
   (org-roam-capture-templates
    `(("d" "default" plain "%?" :target (file+head "${slug}.org" "#+TAGS:\n#+TITLE: ${title}") :unnarrowed t))) ; Gets rid of timestamp in Roam file names
   :config
-  (org-roam-setup)
+  (org-roam-db-autosync-enable)
   :bind
   (("C-c n f" . org-roam-node-find)
    ("C-c n r" . org-roam-node-random)
@@ -254,7 +250,6 @@
 
 
 (use-package citar
-  :defer t
   :after org
   :bind
   (("C-c r e" . #'citar-open-entry)
@@ -269,7 +264,6 @@
 
 
 (use-package citar-org-roam
-  :defer t
   :after (citar org-roam)
   :custom
   (citar-org-roam-mode t)
@@ -320,18 +314,8 @@
      (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
 
 
-(setq major-mode-remap-alist
- '((yaml-mode . yaml-ts-mode)
-   (bash-mode . bash-ts-mode)
-   (js2-mode . js-ts-mode)
-   (typescript-mode . typescript-ts-mode)
-   (json-mode . json-ts-mode)
-   (css-mode . css-ts-mode)
-   (python-mode . python-ts-mode)
-   (rustic-mode . rust-ts-mode)))
-
-
 (use-package treesit
+  :defer t
   :custom
   (treesit-font-lock-level 4) ;; Highest level
   (major-mode-remap-alist
@@ -346,7 +330,6 @@
 
 
 (use-package eglot
-  :defer t
   :hook
   ((c-mode          ; clangd
     c++-mode        ; clangd
@@ -488,3 +471,23 @@
 (use-package emacs-lisp
   :hook
   (emacs-lisp-mode . company-mode))
+
+(use-package web
+  :defer t
+  :custom
+  (web-mode-markup-indent-offset 2)
+  (web-mode-markdown-indent-offset 2)
+  (web-mode-css-indent-offset 2))
+
+(use-package :css
+  :defer t
+  :custom
+  (css-indent-offset 2))
+
+
+;; https://medium.com/@jrmjrm/configuring-emacs-and-eglot-to-work-with-astro-language-server-9408eb709ab0
+;; ASTRO
+(define-derived-mode astro-mode web-mode "astro")
+(setq auto-mode-alist
+      (append '((".*\\.astro\\'" . astro-mode))
+	      auto-mode-alist))

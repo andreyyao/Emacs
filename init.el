@@ -49,12 +49,13 @@
   :ensure t
   :config
   (add-hook
-   'emacs-startup-hook
+   'server-after-make-frame-hook
    (lambda ()
      (load-theme 'doom-material-dark t)
      (set-face-attribute 'highlight nil :distant-foreground 'unspecified :foreground 'unspecified :background 'unspecified :underline '(:color foreground-color :style line))
      (set-face-attribute 'link nil :foreground 'unspecified)
-     (set-face-attribute 'font-lock-comment-face nil :foreground "#66AA77"))))
+     (set-face-attribute 'font-lock-comment-face nil :foreground "#AAAAAA")
+     (set-face-attribute 'font-lock-doc-face nil :foreground "#CCCC22"))))
 
 
 (use-package doom-modeline
@@ -89,12 +90,14 @@
 
 
 (use-package dashboard
-  :init
-  (if (daemonp)
-      (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*"))))
   :config
   (dashboard-setup-startup-hook)
-  (add-hook 'server-after-make-frame-hook 'revert-buffer)
+  (add-hook
+   'server-after-make-frame-hook
+   (lambda ()
+     (if (string= (buffer-name) "*dashboard*") (revert-buffer)))
+  (if (daemonp)
+      (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))))
   :custom
   (dashboard-startup-banner "~/.emacs.d/xemacs.svg")
   (dashboard-banner-logo-title nil)

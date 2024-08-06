@@ -23,8 +23,6 @@
 (pixel-scroll-precision-mode)
 (cua-mode t)
 
-(setq esup-depth 0)
-
 
 (global-set-key (kbd "C-s") 'save-buffer)
 (global-set-key (kbd "C-f") 'isearch-forward)
@@ -45,17 +43,24 @@
   (exec-path-from-shell-initialize))
 
 
+(line-number-mode t)
+(column-number-mode t)
+(global-display-line-numbers-mode 1)
+
+
 (use-package doom-themes
   :ensure t
   :config
-  (add-hook
-   'server-after-make-frame-hook
-   (lambda ()
-     (load-theme 'doom-material-dark t)
-     (set-face-attribute 'highlight nil :distant-foreground 'unspecified :foreground 'unspecified :background 'unspecified :underline '(:color foreground-color :style line))
-     (set-face-attribute 'link nil :foreground 'unspecified)
-     (set-face-attribute 'font-lock-comment-face nil :foreground "#AAAAAA")
-     (set-face-attribute 'font-lock-doc-face nil :foreground "#CCCC22"))))
+  ;; Set the background color first, since it's weird with daemon mode
+  (set-face-attribute 'default nil :background "#1c1e1f" :height 120)
+  ;; https://github.com/jonathanchu/atom-one-dark-theme/issues/50
+  (defun my/theme-init ()
+    (load-theme 'doom-molokai t)
+    (set-face-attribute 'highlight nil :distant-foreground 'unspecified :foreground 'unspecified :background 'unspecified :underline '(:color foreground-color :style line))
+    (set-face-attribute 'link nil :foreground 'unspecified)
+    (set-face-attribute 'font-lock-comment-face nil :foreground "#999999")
+    (set-face-attribute 'font-lock-doc-face nil :foreground "#CCBB77"))
+  (my/theme-init))
 
 
 (use-package doom-modeline
@@ -63,12 +68,14 @@
   :config
   (doom-modeline-def-modeline 'personal-mode-line
     '(buffer-info remote-host buffer-position)
-    '(misc-info major-mode process vcs checker))
+    '(misc-info major-mode process vcs check))
   (add-hook 'doom-modeline-mode-hook
             (lambda ()
               (doom-modeline-set-modeline 'personal-mode-line 'default)))
   (doom-modeline-mode 1)
-  (setq mode-line-percent-position nil))
+  (setq mode-line-percent-position nil)
+  :custom
+  (doom-modeline-env-version nil))
 
 
 (use-package nyan-mode
@@ -79,9 +86,8 @@
   (nyan-wavy-trail t)
   :config
   (nyan-mode t)
-  (setq nyan-cat-image
-        (create-image nyan-cat-face-image 'xpm nil :scale 2 :ascent 'center))
-  (setq nyan-animation-frames
+  (setq nyan-cat-image (create-image nyan-cat-face-image 'xpm nil :scale 2 :ascent 'center)
+	nyan-animation-frames
         (mapcar
 	 (lambda (id)
            (create-image (concat nyan-directory (format "img/nyan-frame-%d.xpm" id))
@@ -92,14 +98,12 @@
 (use-package dashboard
   :config
   (dashboard-setup-startup-hook)
-  (add-hook
-   'server-after-make-frame-hook
-   (lambda ()
-     (if (string= (buffer-name) "*dashboard*") (revert-buffer)))
+  (add-hook 'server-after-make-frame-hook
+	    (lambda () (if (string= (buffer-name) "*dashboard*") (revert-buffer))))
   (if (daemonp)
-      (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))))
+      (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*"))))
   :custom
-  (dashboard-startup-banner "~/.emacs.d/xemacs.svg")
+  (dashboard-startup-banner "~/.emacs.d/emacs.svg")
   (dashboard-banner-logo-title nil)
   (dashboard-display-icons-p t)
   (dashboard-icon-type 'nerd-icons)
@@ -110,7 +114,12 @@
   (dashboard-projects-backend 'project-el)
   (dashboard-set-file-icons t)
   (dashboard-set-navigator nil)
-  (dashboard-items '((recents  . 12) (projects . 3))))
+  (dashboard-items '((recents  . 10) (projects . 0)))
+  (dashboard-footer-messages
+   '("Mitochondria is the powerhouse of the cell"
+     "I showed you my source code, pls respond"
+     "Monads are just monoids in the category of endofunctors"
+     "I use Arch btw")))
 
 
 (use-package recentf
@@ -250,6 +259,7 @@
    ("C-c n t" . org-roam-tag-add)
    ("C-c n a" . org-roam-alias-add)
    ("C-c n l" . org-roam-buffer-toggle)))
+;; How to insert node with different label: https://github.com/org-roam/org-roam/issues/2147
 
 
 (use-package citar
@@ -282,11 +292,6 @@
 ;; <----------------------- END ORG ------------------------->
 
 ;; <----------------------- PROGRAM ------------------------->
-(use-package prog-mode
-  :hook
-  (prog-mode . display-line-numbers-mode))
-
-
 (use-package treemacs
   :defer t
   :custom
@@ -336,6 +341,7 @@
   :hook
   ((c-mode          ; clangd
     c++-mode        ; clangd
+    java-mode       ; IDK, some server for java
     typescript-mode ; ts-ls (tsserver wrapper)
     python-mode     ; pyright
     rust-ts-mode    ; rust-analyzer
@@ -347,18 +353,19 @@
   :config
   (add-to-list 'eglot-server-programs
 	       '((tex-mode context-mode texinfo-mode bibtex-mode) . ("texlab")))
-  (add-hook 'eglot-managed-mode-hook #'company-mode t)
-  (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-at-point-mode t))
+  (add-hook 'eglot-managed-mode-hook #'company-mode)
+  (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-at-point-mode))
 
 
 (use-package eldoc-box
+  :after (eglot)
   :custom
   (eldoc-box-max-pixel-width 1500)
   (eldoc-box-max-pixel-height 1000))
 
 
 (use-package yasnippet
-  :hook (latex-mode . yas-minor-mode))
+  :hook (LaTeX-mode . yas-minor-mode))
 
 
 (use-package flymake
@@ -419,17 +426,20 @@
 
 
 ;;;;************************ LaTeX ***************************
-(use-package AucTeX
+(use-package tex
+  :ensure auctex
+  :ensure reftex
+  :mode ("\\.tex\\'" . LaTeX-mode)
   :hook
-  (LaTeX-mode . display-line-numbers-mode)
-  (LaTeX-mode . prettify-symbols-mode)
-  (LaTeX-mode . LaTeX-math-mode)
-  (LaTeX-mode . eglot-ensure)
+  (TeX-mode . display-line-numbers-mode)
+  (TeX-mode . prettify-symbols-mode)
+  (TeX-mode . eglot-ensure)
+  (LaTeX-mode . turn-on-reftex)
   :custom
   (TeX-view-program-selection '((output-pdf "Okular")))
   (TeX-source-correlate-start-server t)
-  ; (TeX-electric-math (cons "$" "$"))
   (TeX-save-query nil)
+  (reftex-plug-into-AUCTeX t)
   :config
   (add-hook 'TeX-after-compilation-finished-hook
             #'TeX-revert-document-buffer))
@@ -450,8 +460,7 @@
 
 ;;;;********************** Rust 🦀 ***************************
 (use-package rust-ts
-  :defer t
-  :hook (rust-ts-mode 'eglot))
+  :defer t)
 
 
 ;;;;************************ C++ *****************************
@@ -466,8 +475,7 @@
 
 ;;;;************************ Haskell *************************
 (use-package haskell
-  :defer t
-  :bind ("C-c C-c" . 'haskell-compile))
+  :defer t)
 
 
 ;;;;************************* ELisp **************************
@@ -480,7 +488,8 @@
   :custom
   (web-mode-markup-indent-offset 2)
   (web-mode-markdown-indent-offset 2)
-  (web-mode-css-indent-offset 2))
+  (web-mode-css-indent-offset 2)
+  (web-mode-code-indent-offset 2))
 
 (use-package :css
   :defer t

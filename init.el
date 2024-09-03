@@ -1,5 +1,5 @@
 (require 'package)
-(setq custom-file (concat user-emacs-directory "custom.el"))
+(customize-set-variable 'custom-file (concat user-emacs-directory "custom.el"))
 (load custom-file)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 
@@ -12,14 +12,17 @@
             (setq gc-cons-threshold (* 1024 1024 100))))
 
 
-(setq backup-directory-alist '(("" . "~/.emacs.d/backups")))
+(customize-set-variable 'backup-directory-alist '(("." . "~/.emacs.d/backups")))
+;; https://www.gnu.org/software/emacs/manual/html_node/elisp/File-Locks.html#index-lock_002dfile_002dname_002dtransforms
+(customize-set-variable 'lock-file-name-transforms
+      '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" t)))
 
 
-(setq inhibit-startup-echo-area-message "andrey")
-(setq global-auto-revert-mode t)
-(setq global-eldoc-mode nil)
-(setq indent-tabs-mode nil)
-(setq line-number-mode nil)
+(customize-set-variable 'inhibit-startup-echo-area-message "andrey")
+(customize-set-variable 'global-auto-revert-mode t)
+(customize-set-variable 'global-eldoc-mode nil)
+(customize-set-variable 'indent-tabs-mode nil)
+(customize-set-variable 'line-number-mode nil)
 (pixel-scroll-precision-mode)
 (cua-mode t)
 
@@ -296,6 +299,7 @@
   :defer t
   :custom
   (treemacs-width 20)
+  (treemacs-indentation 1)
   (treemacs-hide-gitignored-files-mode t)
   :config
   (require 'treemacs-nerd-icons)

@@ -11,11 +11,13 @@
           (lambda ()
             (setq gc-cons-threshold (* 1024 1024 100))))
 
-
-(customize-set-variable 'backup-directory-alist '(("." . "~/.emacs.d/backups")))
-;; https://www.gnu.org/software/emacs/manual/html_node/elisp/File-Locks.html#index-lock_002dfile_002dname_002dtransforms
+(defvar emacs-temp-dir "~/.emacs.d/temp"
+  "The dumpster for all backup-related stuff")
+(customize-set-variable 'backup-directory-alist `(("." . ,emacs-temp-dir)))
 (customize-set-variable 'lock-file-name-transforms
-      '(("\\`/.*/\\([^/]+\\)\\'" "/var/tmp/\\1" t)))
+                        `(("\\`/.*/\\([^/]+\\)\\'" ,emacs-temp-dir t)))
+(customize-set-variable 'auto-save-file-name-transforms
+                        `((".*" ,emacs-temp-dir t)))
 
 
 (customize-set-variable 'inhibit-startup-echo-area-message "andrey")

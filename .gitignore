@@ -19,11 +19,13 @@ transient
 package-quickstart.elc
 package-quickstart.el
 elisp-autofmt-cache
-backups
-#*#
+temp
 games
 .org-id-locations
 projects
 bookmarks
 xenops
 tree-sitter
+tramp
+recentf
+eshell

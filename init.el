@@ -4,9 +4,9 @@
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 
 
-;; Minimize garbage collection during startup to reduce startup time
+;;; Minimize garbage collection during startup to reduce startup time
 (setq gc-cons-threshold most-positive-fixnum)
-;; Set it back to reduce long freezing during GC
+;;; Set it back to reduce long freezing during GC
 (add-hook 'after-init-hook
           (lambda ()
             (setq gc-cons-threshold (* 1024 1024 100))))
@@ -40,7 +40,7 @@
   (find-file user-init-file))
 
 
-;; Making sure that emacs inherits same environment variable as shell
+;;; Making sure that emacs inherits same environment variable as shell
 (use-package exec-path-from-shell
   :config
   (setq exec-path-from-shell-variables '("PATH"))
@@ -50,22 +50,35 @@
 
 (line-number-mode t)
 (column-number-mode t)
-(global-display-line-numbers-mode 1)
 
-
-(use-package doom-themes
+(use-package display-line-numbers
   :ensure t
   :config
-  ;; Set the background color first, since it's weird with daemon mode
-  (set-face-attribute 'default nil :background "#1c1e1f" :height 120)
-  ;; https://github.com/jonathanchu/atom-one-dark-theme/issues/50
-  (defun my/theme-init ()
-    (load-theme 'doom-molokai t)
-    (set-face-attribute 'highlight nil :distant-foreground 'unspecified :foreground 'unspecified :background 'unspecified :underline '(:color foreground-color :style line))
-    (set-face-attribute 'link nil :foreground 'unspecified)
-    (set-face-attribute 'font-lock-comment-face nil :foreground "#999999")
-    (set-face-attribute 'font-lock-doc-face nil :foreground "#CCBB77"))
-  (my/theme-init))
+  (global-display-line-numbers-mode 1)
+  :custom
+  (display-line-numbers-width-start t))
+
+
+(use-package modus-themes
+  :ensure t
+  :config
+  ; Set the background color first, since it's weird with daemon mode
+  (set-face-attribute 'default nil :background "#0d0e1c" :height 120)
+  (load-theme 'modus-vivendi-tinted t))
+
+;; (use-package doom-themes
+;;   :ensure t
+;;   :config
+;;   ; Set the background color first, since it's weird with daemon mode
+;;   (set-face-attribute 'default nil :background "#1c1e1f" :height 120)
+;;   ; https://github.com/jonathanchu/atom-one-dark-theme/issues/50
+;;   (defun my/theme-init ()
+;;     (load-theme 'doom-molokai t)
+;;     (set-face-attribute 'highlight nil :distant-foreground 'unspecified :foreground 'unspecified :background 'unspecified :underline '(:color foreground-color :style line))
+;;     (set-face-attribute 'link nil :foreground 'unspecified)
+;;     (set-face-attribute 'font-lock-comment-face nil :foreground "#999999")
+;;     (set-face-attribute 'font-lock-doc-face nil :foreground "#CCBB77"))
+;;   (my/theme-init))
 
 
 (use-package doom-modeline
@@ -92,9 +105,9 @@
   :config
   (nyan-mode t)
   (setq nyan-cat-image (create-image nyan-cat-face-image 'xpm nil :scale 2 :ascent 'center)
-	nyan-animation-frames
+        nyan-animation-frames
         (mapcar
-	 (lambda (id)
+         (lambda (id)
            (create-image (concat nyan-directory (format "img/nyan-frame-%d.xpm" id))
                          'xpm nil :scale 2 :ascent 95))
          '(1 2 3 4 5 6))))
@@ -104,7 +117,7 @@
   :config
   (dashboard-setup-startup-hook)
   (add-hook 'server-after-make-frame-hook
-	    (lambda () (if (string= (buffer-name) "*dashboard*") (revert-buffer))))
+            (lambda () (if (string= (buffer-name) "*dashboard*") (revert-buffer))))
   (if (daemonp)
       (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*"))))
   :custom
@@ -124,6 +137,7 @@
    '("Mitochondria is the powerhouse of the cell"
      "I showed you my source code, pls respond"
      "Monads are just monoids in the category of endofunctors"
+     "Proof checker? I hardly know'er!"
      "I use Arch btw")))
 
 
@@ -136,13 +150,20 @@
   (recentf-mode 1))
 
 
+(use-package ibuffer
+  :config
+  (global-set-key (kbd "C-x C-b") 'ibuffer)
+  :custom
+  (ibuffer-use-other-window t))
+
+
 (use-package which-key
   :config (which-key-mode))
 
 
 (use-package vertico
   :init (vertico-mode)
-  :custom (vertico-count 5))
+  :custom (vertico-count 6))
 
 
 (use-package orderless
@@ -174,8 +195,7 @@
 
 (use-package ethan-wspace
   :config
-  ;; Turn off `mode-require-final-newline' since ethan-wspace
-  ;; supersedes `require-final-newline'.
+  ;; Turn off `mode-require-final-newline' since ethan-wspace supersedes `require-final-newline'.
   (setq mode-require-final-newline nil)
   (global-ethan-wspace-mode 1) ; Enable ethan-wspace globally
   (add-hook 'makefile-mode-hook ; Keep TAB's on makefile mode
@@ -190,37 +210,37 @@
 
 ;; <---------------------- ORG ----------------------------->
 
-;; Used to set org-mode buffer margins
-(defun org-set-margins ()
-  "Set margins in current buffer."
-  (setq left-margin-width 3)
-  (setq right-margin-width 3))
+;;; Used to set org-mode buffer margins
+;; (defun org-set-margins ()
+;;   "Set margins in current buffer."
+;;   (setq left-margin-width 3)
+;;   (setq right-margin-width 3))
 
 (use-package org
-  :mode (("\\.org$" . org-mode)) ;; Config doesn't run without this
+  :mode (("\\.org$" . org-mode)) ; Config doesn't run without this
   :hook
   (org-mode . flyspell-mode)
   (org-mode . company-mode)
   (org-mode . org-indent-mode)
   (org-mode . org-fragtog-mode)
   :config
-  (add-hook 'org-mode-hook 'org-set-margins)
+  ;; (add-hook 'org-mode-hook 'org-set-margins)
   (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
   (setq org-startup-truncated nil)
-  ;; From the package ov
+  ; From the package ov
   (defun ov-at (&optional point)
     "Get an overlay at POINT.
   POINT defaults to the current `point'."
     (or point (setq point (point)))
     (car (overlays-at point)))
-  ;; https://www.reddit.com/r/emacs/comments/169keg7/comment/jzierha/?utm_source=share&utm_medium=web2x&context=3
+  ; https://www.reddit.com/r/emacs/comments/169keg7/comment/jzierha/?utm_source=share&utm_medium=web2x&context=3
   (defun org-justify-fragment-overlay (beg end image &optional imagetype)
     "Only equations at the beginning and also end of a line are justified."
     (if
      (and (= beg (line-beginning-position)) (= end (line-end-position)))
      (let* ((ov (ov-at))
-	    (disp (overlay-get ov 'display)))
+            (disp (overlay-get ov 'display)))
        (overlay-put ov 'line-prefix `(space :align-to (- center (0.5 . ,disp)))))))
   (advice-add 'org--make-preview-overlay :after 'org-justify-fragment-overlay)
   :custom
@@ -245,7 +265,7 @@
    ((t
      (:box (:line-width (2 . 4) :color "brown" :style released-button)
       :foreground "gray50" :background "brown" :extend t :inherit (org-block))))))
-;; (setq org-hide-block-startup t)))
+; (setq org-hide-block-startup t)))
 
 (use-package org-roam
   :init
@@ -264,7 +284,7 @@
    ("C-c n t" . org-roam-tag-add)
    ("C-c n a" . org-roam-alias-add)
    ("C-c n l" . org-roam-buffer-toggle)))
-;; How to insert node with different label: https://github.com/org-roam/org-roam/issues/2147
+   ; How to insert node with different label: https://github.com/org-roam/org-roam/issues/2147
 
 
 (use-package citar
@@ -285,8 +305,7 @@
   :after (citar org-roam)
   :custom
   (citar-org-roam-mode t)
-  ;; NOTE: This was the original default subdir,prior to
-  ;; https://github.com/emacs-citar/citar-org-roam/issues/36
+  ;; NOTE: This was the original default subdir, prior to https://github.com/emacs-citar/citar-org-roam/issues/36
   (citar-org-roam-subdir "references"))
 
 
@@ -331,7 +350,7 @@
 (use-package treesit
   :defer t
   :custom
-  (treesit-font-lock-level 4) ;; Highest level
+  (treesit-font-lock-level 4) ; Highest level
   (major-mode-remap-alist
    '((yaml-mode . yaml-ts-mode)
      (bash-mode . bash-ts-mode)
@@ -357,8 +376,9 @@
   :custom
   (eglot-ignored-server-capabilities '(:inlayHintProvider))
   :config
-  (add-to-list 'eglot-server-programs
-	       '((tex-mode context-mode texinfo-mode bibtex-mode) . ("texlab")))
+  (add-to-list
+   'eglot-server-programs
+   '((tex-mode context-mode texinfo-mode bibtex-mode) . ("texlab")))
   (add-hook 'eglot-managed-mode-hook #'company-mode)
   (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-at-point-mode))
 
@@ -390,7 +410,7 @@
 (use-package python
   :defer t
   :custom
-  (python-indent-offset 2))
+  (python-indent-offset 4))
 
 
 ;;;;********************** OCaml 🐪 **************************
@@ -508,4 +528,4 @@
 (define-derived-mode astro-mode web-mode "astro")
 (setq auto-mode-alist
       (append '((".*\\.astro\\'" . astro-mode))
-	      auto-mode-alist))
+              auto-mode-alist))

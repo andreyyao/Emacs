@@ -44,7 +44,7 @@
 (use-package exec-path-from-shell
   :config
   (setq exec-path-from-shell-variables '("PATH"))
-  (setenv "SHELL" "/usr/share/zsh")
+  (setenv "SHELL" "/usr/share/fish")
   (exec-path-from-shell-initialize))
 
 
@@ -53,33 +53,19 @@
 
 (use-package display-line-numbers
   :ensure t
-  :config
-  (global-display-line-numbers-mode 1)
+  :hook
+  (prog-mode . display-line-numbers-mode)
+  (text-mode . display-line-numbers-mode)
   :custom
   (display-line-numbers-width-start t))
 
-
-(use-package modus-themes
+(use-package doom-themes
   :ensure t
+  :custom
+  (doom-molokai-brighter-comments t)
   :config
-  ; Set the background color first, since it's weird with daemon mode
-  (set-face-attribute 'default nil :background "#0d0e1c" :height 120)
-  (load-theme 'modus-vivendi-tinted t))
-
-;; (use-package doom-themes
-;;   :ensure t
-;;   :config
-;;   ; Set the background color first, since it's weird with daemon mode
-;;   (set-face-attribute 'default nil :background "#1c1e1f" :height 120)
-;;   ; https://github.com/jonathanchu/atom-one-dark-theme/issues/50
-;;   (defun my/theme-init ()
-;;     (load-theme 'doom-molokai t)
-;;     (set-face-attribute 'highlight nil :distant-foreground 'unspecified :foreground 'unspecified :background 'unspecified :underline '(:color foreground-color :style line))
-;;     (set-face-attribute 'link nil :foreground 'unspecified)
-;;     (set-face-attribute 'font-lock-comment-face nil :foreground "#999999")
-;;     (set-face-attribute 'font-lock-doc-face nil :foreground "#CCBB77"))
-;;   (my/theme-init))
-
+  (set-face-attribute 'default nil :height 120)
+  (load-theme 'doom-molokai))
 
 (use-package doom-modeline
   :ensure t
@@ -210,39 +196,19 @@
 
 ;; <---------------------- ORG ----------------------------->
 
-;;; Used to set org-mode buffer margins
-;; (defun org-set-margins ()
-;;   "Set margins in current buffer."
-;;   (setq left-margin-width 3)
-;;   (setq right-margin-width 3))
-
 (use-package org
+  ; https://abode.karthinks.com/org-latex-preview/
+  :load-path "~/.emacs.d/elpa/org-mode/lisp/"
   :mode (("\\.org$" . org-mode)) ; Config doesn't run without this
   :hook
   (org-mode . flyspell-mode)
   (org-mode . company-mode)
   (org-mode . org-indent-mode)
-  (org-mode . org-fragtog-mode)
   :config
   ;; (add-hook 'org-mode-hook 'org-set-margins)
   (add-hook 'org-babel-after-execute-hook 'org-redisplay-inline-images)
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
   (setq org-startup-truncated nil)
-  ; From the package ov
-  (defun ov-at (&optional point)
-    "Get an overlay at POINT.
-  POINT defaults to the current `point'."
-    (or point (setq point (point)))
-    (car (overlays-at point)))
-  ; https://www.reddit.com/r/emacs/comments/169keg7/comment/jzierha/?utm_source=share&utm_medium=web2x&context=3
-  (defun org-justify-fragment-overlay (beg end image &optional imagetype)
-    "Only equations at the beginning and also end of a line are justified."
-    (if
-     (and (= beg (line-beginning-position)) (= end (line-end-position)))
-     (let* ((ov (ov-at))
-            (disp (overlay-get ov 'display)))
-       (overlay-put ov 'line-prefix `(space :align-to (- center (0.5 . ,disp)))))))
-  (advice-add 'org--make-preview-overlay :after 'org-justify-fragment-overlay)
   :custom
   (org-support-shift-select t)
   (org-startup-with-inline-images t)
@@ -250,9 +216,9 @@
   (org-fontify-whole-heading-line t)
   (org-confirm-babel-evaluate nil)
   (org-cite-global-bibliography '("~/Documents/Roam/zotero.bib"))
-  (org-babel-load-languages '((python . t) (emacs-lisp . t) (C . t) (ocaml . t) (shell . t) (R . t)))
+  ;; (org-babel-load-languages '((python . t) (emacs-lisp . t) (C . t) (ocaml . t) (shell . t) (R . t)))
   (org-babel-python-command "~/Documents/Roam/.venv/bin/python") ;; virtual env
-  (org-latex-packages-alist '(("AUTO" "mathpartir" t ("pdflatex"))("AUTO" "mathtools" t ("pdflatex"))))
+  (org-latex-packages-alist '(("" "mathpartir" t) ("" "tikz-cd" t) ("" "mathtools" t) ("" "amssymb" t)))
   :custom-face
   (org-level-1 ((t (:inherit outline-1 :height 1.3))))
   (org-level-2 ((t (:inherit outline-2 :height 1.2))))
@@ -265,7 +231,23 @@
    ((t
      (:box (:line-width (2 . 4) :color "brown" :style released-button)
       :foreground "gray50" :background "brown" :extend t :inherit (org-block))))))
-; (setq org-hide-block-startup t)))
+                                        ; (setq org-hide-block-startup t)))
+
+;; code for centering LaTeX previews -- a terrible idea
+;; https://abode.karthinks.com/org-latex-preview/#org182d6f6
+(use-package org-latex-preview
+  :hook
+  (org-mode . org-latex-preview-auto-mode)
+  :config
+  (defun my/org-latex-preview-center (ov)
+    (let* ((disp (overlay-get ov 'display)))
+        (overlay-put ov 'line-prefix `(space :align-to (- center (0.55 . ,disp))))))
+  (add-hook 'org-latex-preview-overlay-open-functions
+            #'my/org-latex-preview-center nil :local)
+  (add-hook 'org-latex-preview-overlay-close-functions
+            #'my/org-latex-preview-center nil :local)
+  (add-hook 'org-latex-preview-overlay-update-functions
+            #'my/org-latex-preview-center nil :local))
 
 (use-package org-roam
   :init
@@ -308,11 +290,6 @@
   ;; NOTE: This was the original default subdir, prior to https://github.com/emacs-citar/citar-org-roam/issues/36
   (citar-org-roam-subdir "references"))
 
-
-(use-package org-fragtog
-  :defer t
-  :ensure t)
-
 ;; <----------------------- END ORG ------------------------->
 
 ;; <----------------------- PROGRAM ------------------------->
@@ -321,30 +298,123 @@
   :custom
   (treemacs-width 20)
   (treemacs-indentation 1)
-  (treemacs-hide-gitignored-files-mode t)
   :config
+  (treemacs-git-mode 'deferred)
+  (treemacs-hide-gitignored-files-mode t)
   (require 'treemacs-nerd-icons)
-  (treemacs-load-theme "nerd-icons"))
+  (treemacs-load-theme "nerd-icons")
+  (defvar treemacs-nerd-icons-tab (" " :face 'treemacs-nerd-icons-file-face))
+  (progn
+    (dolist (item nerd-icons-extension-icon-alist)
+      (let* ((extension (car item))
+             (func (cadr item))
+             (args (append (list (cadr (cdr item))) '(:v-adjust -0.05 :height 1.0) (cdr (cddr item))))
+             (icon (apply func args)))
+        (let* ((icon-pair (cons (format "%s%s" icon treemacs-nerd-icons-tab) (format "%s%s" icon treemacs-nerd-icons-tab)))
+               (gui-icons (treemacs-theme->gui-icons treemacs--current-theme))
+               (tui-icons (treemacs-theme->tui-icons treemacs--current-theme))
+               (gui-icon  (car icon-pair))
+               (tui-icon  (cdr icon-pair)))
+          (ht-set! gui-icons extension gui-icon)
+          (ht-set! tui-icons extension tui-icon))))
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-octicon "nf-oct-repo" :face 'treemacs-nerd-icons-root-face) treemacs-nerd-icons-tab)
+                          :extensions (root-closed root-open)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-faicon "nf-fa-folder_open" :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (dir-open)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-faicon "nf-fa-folder" :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (dir-closed)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-faicon "nf-fa-folder_open" :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (src-open)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-faicon "nf-fa-folder" :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (src-closed)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-faicon "nf-fa-folder_open"  :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (build-open)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-faicon "nf-fa-folder"  :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (build-closed)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-faicon "nf-fa-folder_open"  :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (test-open)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-faicon "nf-fa-folder"  :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (test-closed)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-octicon "nf-oct-package"  :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (tag-open)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-octicon "nf-oct-package"  :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (tag-closed)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-octicon "nf-oct-tag"   :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (tag-leaf)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-octicon "nf-oct-flame"  :face 'nerd-icons-red) treemacs-nerd-icons-tab)
+                          :extensions (error)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-octicon "nf-oct-stop"  :face 'nerd-icons-yellow) treemacs-nerd-icons-tab)
+                          :extensions (warning)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-octicon "nf-oct-info"   :face 'nerd-icons-blue) treemacs-nerd-icons-tab)
+                          :extensions (info)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-mdicon "nf-md-mail"   :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (mail)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-octicon "nf-oct-bookmark"   :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (bookmark)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-mdicon "nf-md-monitor"   :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (screen)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-mdicon "nf-md-home"   :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (house)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-faicon "nf-fa-list"   :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (list)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-mdicon "nf-md-repeat"   :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (repeat)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-faicon "nf-fa-suitcase"   :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (suitcase)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-mdicon "nf-md-close"   :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (close)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-octicon "nf-oct-calendar"   :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (calendar)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-faicon "nf-fa-briefcase"   :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (briefcase)
+                          :fallback 'same-as-icon)
+    (treemacs-create-icon :icon (format "%s%s" (nerd-icons-faicon "nf-fa-file_o" :face 'treemacs-nerd-icons-file-face) treemacs-nerd-icons-tab)
+                          :extensions (fallback)
+                          :fallback 'same-as-icon)))
 
 
 (setq treesit-language-source-alist
-   '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-     (cmake "https://github.com/uyha/tree-sitter-cmake")
-     (css "https://github.com/tree-sitter/tree-sitter-css")
-     (elisp "https://github.com/Wilfred/tree-sitter-elisp")
-     (haskell "https://github.com/tree-sitter/tree-sitter-haskell")
-     (go "https://github.com/tree-sitter/tree-sitter-go")
-     (html "https://github.com/tree-sitter/tree-sitter-html")
-     (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
-     (json "https://github.com/tree-sitter/tree-sitter-json")
-     (make "https://github.com/alemuller/tree-sitter-make")
-     (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-     (python "https://github.com/tree-sitter/tree-sitter-python")
-     (rust "https://github.com/tree-sitter/tree-sitter-rust")
-     (toml "https://github.com/tree-sitter/tree-sitter-toml")
-     (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
-     (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
-     (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
+      '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+        (cmake "https://github.com/uyha/tree-sitter-cmake")
+        (css "https://github.com/tree-sitter/tree-sitter-css")
+        (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+        (haskell "https://github.com/tree-sitter/tree-sitter-haskell")
+        (go "https://github.com/tree-sitter/tree-sitter-go")
+        (html "https://github.com/tree-sitter/tree-sitter-html")
+        (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+        (json "https://github.com/tree-sitter/tree-sitter-json")
+        (make "https://github.com/alemuller/tree-sitter-make")
+        (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+        (python "https://github.com/tree-sitter/tree-sitter-python")
+        (rust "https://github.com/tree-sitter/tree-sitter-rust")
+        (toml "https://github.com/tree-sitter/tree-sitter-toml")
+        (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+        (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+        (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
 
 
 (use-package treesit
@@ -366,6 +436,7 @@
   :hook
   ((c-mode          ; clangd
     c++-mode        ; clangd
+    ;; coq-mode        ; coq-lsp
     java-mode       ; IDK, some server for java
     typescript-mode ; ts-ls (tsserver wrapper)
     python-mode     ; pyright
@@ -379,6 +450,9 @@
   (add-to-list
    'eglot-server-programs
    '((tex-mode context-mode texinfo-mode bibtex-mode) . ("texlab")))
+  ;; (add-to-list
+  ;;  'eglot-server-programs
+  ;;  '(coq-mode . ("coq-lsp")))
   (add-hook 'eglot-managed-mode-hook #'company-mode)
   (add-hook 'eglot-managed-mode-hook #'eldoc-box-hover-at-point-mode))
 
@@ -462,6 +536,8 @@
   (TeX-mode . eglot-ensure)
   (LaTeX-mode . turn-on-reftex)
   :custom
+  (TeX-source-correlate-mode t)
+  (TeX-command-extra-options " -shell-escape")
   (TeX-view-program-selection '((output-pdf "Okular")))
   (TeX-source-correlate-start-server t)
   (TeX-save-query nil)
@@ -475,8 +551,8 @@
 (use-package proof-general
   :defer t
   :custom
-  (proof-splash-enable nil))
-
+  (proof-splash-enable nil)
+  (coq-compile-before-require t))
 
 (use-package company-coq
   :defer t
@@ -497,7 +573,6 @@
 ;;;;********************** Type script ***********************
 (use-package typescript
   :defer t)
-
 
 ;;;;************************ Haskell *************************
 (use-package haskell
@@ -522,10 +597,15 @@
   :custom
   (css-indent-offset 2))
 
-
 ;; https://medium.com/@jrmjrm/configuring-emacs-and-eglot-to-work-with-astro-language-server-9408eb709ab0
 ;; ASTRO
 (define-derived-mode astro-mode web-mode "astro")
-(setq auto-mode-alist
-      (append '((".*\\.astro\\'" . astro-mode))
-              auto-mode-alist))
+(use-package astro
+  :mode ("\\.astro\\'" . astro-mode)
+  :after eglot
+  :config
+  (add-to-list 'eglot-server-programs
+               '(astro-mode . ("astro-ls" "--stdio"
+                               :initializationOptions
+                               (:typescript (:tsdk "./node_modules/typescript/lib")))))
+  (add-hook 'astro-mode-hook 'eglot-ensure))
